@@ -1,0 +1,13 @@
+# Private interview prep, not part of the deliverable
+DEBRIEF-NOTES.md
+
+node_modules/
+dist/
+build/
+coverage/
+.env
+.env.local
+*.log
+.DS_Store
+.vite/
+*.tsbuildinfo
