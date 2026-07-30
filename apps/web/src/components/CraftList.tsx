@@ -15,7 +15,7 @@ interface Props {
  * The server already orders them; the UI keeps that order rather than sorting by
  * severity, because "what can I change" is the question an agent is asking.
  */
-function failureTone(failure: Failure): string {
+function failureTone(failure: Failure): string | undefined {
   return failure.actionable ? styles.warn : styles.bad;
 }
 
