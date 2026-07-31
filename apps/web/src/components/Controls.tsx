@@ -2,6 +2,14 @@ import type { Planet } from '../types';
 import { temperature } from '../format';
 import styles from './Controls.module.css';
 
+/**
+ * Lowercases only the leading character so the reason reads as a clause after the
+ * body name. Lowercasing the whole string would turn the unit `°C` into `°c`.
+ */
+function uncapitalise(sentence: string): string {
+  return sentence.charAt(0).toLowerCase() + sentence.slice(1);
+}
+
 interface Props {
   destinations: Planet[];
   excluded: { body: Planet; reason: string }[];
@@ -85,7 +93,7 @@ export function Controls({
           {excluded.map((entry, index) => (
             <span key={entry.body.id}>
               {index > 0 && ', '}
-              <strong>{entry.body.name}</strong> — {entry.reason.toLowerCase()}
+              <strong>{entry.body.name}</strong> — {uncapitalise(entry.reason)}
             </span>
           ))}
         </p>
