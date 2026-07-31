@@ -32,9 +32,46 @@ function radius(body: Planet, maxDiameter: number): number {
   return min + (Math.sqrt(body.diameterKm) / Math.sqrt(maxDiameter)) * (max - min);
 }
 
+/** Width of one character at the 11px monospace the labels are set in. */
+const LABEL_CHAR_W = 6.6;
+const LABEL_ROW_H = 13;
+
+/**
+ * Assigns each label a row so the inner planets stay readable.
+ *
+ * The square-root scale separates the inner bodies enough to tell the dots
+ * apart, but their names are still wider than the gaps between them — on one
+ * baseline "Mercury", "Venus" and "Earth" overlap. Labels are placed left to
+ * right and drop a row whenever they would run into the last one already
+ * placed on that row.
+ */
+function labelRows(bodies: Planet[], x: (km: number) => number): Map<string, number> {
+  const ordered = [...bodies].sort((a, b) => a.distanceFromSunKm - b.distanceFromSunKm);
+  const rightEdges: number[] = [];
+  const rows = new Map<string, number>();
+
+  for (const body of ordered) {
+    const centre = x(body.distanceFromSunKm);
+    const half = (body.name.length * LABEL_CHAR_W) / 2;
+
+    let row = 0;
+    for (;;) {
+      const edge = rightEdges[row];
+      if (edge === undefined || centre - half >= edge) break;
+      row += 1;
+    }
+
+    rows.set(body.id, row);
+    rightEdges[row] = centre + half;
+  }
+
+  return rows;
+}
+
 export function TrajectoryDiagram({ bodies, departure, selectedIds, legs }: Props) {
   const x = scale(bodies);
   const maxDiameter = Math.max(...bodies.map((b) => b.diameterKm));
+  const rows = labelRows(bodies, x);
 
   const visited = new Set(legs.flatMap((leg) => [leg.fromPlanetId, leg.toPlanetId]));
   const passed = new Set(legs.flatMap((leg) => leg.passedPlanetIds));
@@ -102,7 +139,7 @@ export function TrajectoryDiagram({ bodies, departure, selectedIds, legs }: Prop
               />
               <text
                 x={cx}
-                y={AXIS_Y + r + 18}
+                y={AXIS_Y + r + 18 + (rows.get(body.id) ?? 0) * LABEL_ROW_H}
                 className={isOnRoute || isDeparture ? styles.labelOn : styles.label}
               >
                 {body.name}
