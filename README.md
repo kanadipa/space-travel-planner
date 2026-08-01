@@ -5,6 +5,9 @@ a set of destinations; the application works out the trajectory, tells them whic
 spacecraft can fly it and why the others cannot, and saves the result as a mission
 plan that can be reloaded later.
 
+![The planner screen: a two-stop route to Mars and Jupiter, with live totals and
+the fleet evaluated against it](./docs/planner.jpg)
+
 ## Running it
 
 Requires Node 20 or later and Docker.
@@ -31,6 +34,10 @@ Tests:
 ```bash
 npm test
 ```
+
+The domain tests need neither the database nor the Prisma client. Typechecking the
+API does need the client, so run `npm run prisma:migrate -w @smp/api` (or
+`prisma:generate`) before `npm run typecheck --workspaces`.
 
 Without Docker: set the `datasource` provider in `apps/api/prisma/schema.prisma`
 to `sqlite` and `DATABASE_URL="file:./dev.db"`. Postgres-specific columns
