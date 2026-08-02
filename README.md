@@ -150,15 +150,35 @@ deliberately.
 
 ## Testing
 
-The domain is pure arithmetic with several easy-to-get-wrong edge cases, so that
-is where the tests are concentrated: distance symmetry and identity, the radius
-subtraction, detour counting, the turnaround exemption, consumption monotonicity,
-and failure collection. 45 tests, no mocks, no fixtures beyond four synthetic
+95 tests across three layers, all runnable with `npm test` and no Docker.
+
+**Domain (45).** Pure arithmetic with several easy-to-get-wrong edge cases, so
+this is where the tests are concentrated: distance symmetry and identity, the
+radius subtraction, detour counting, the turnaround exemption, consumption
+monotonicity, and failure collection. No mocks, no fixtures beyond four synthetic
 bodies with round numbers.
+
+**API (35).** The real Nest application over supertest, using the same request
+pipeline `main.ts` installs — both call the shared `configureApp`, so a test
+cannot pass against a pipeline users do not hit. Covers the three distinct
+outcomes, with the 422 path taken furthest: each failure mode separately, several
+at once, the actionable flag, and a check that a refused mission is not
+persisted.
+
+The database is swapped for an in-memory double. The behaviour under test is the
+HTTP contract, not Prisma's query building, and the 422 case is rejected before
+any write. The trade-off: a mismatch between the code and the real schema is not
+caught here — `prisma migrate` and running the app cover that.
+
+**Client (15).** The planner screen against a stubbed `fetch` returning the API's
+real shapes. Covers the product decisions rather than the markup: excluded craft
+stay visible with reasons, an excluded craft cannot be selected, saving is
+blocked until a feasible craft is chosen, a 422 surfaces the server's reasons,
+and — the contract the server depends on — a save sends inputs only, never a
+distance or a duration.
 
 ## Not built
 
-- API integration tests, including the 422 path
-- Component tests for the planner screen
+- End-to-end tests against a real database and browser
 - Craft availability across saved missions — see ASSUMPTIONS.md
 - Passenger pooling across bookings — see ASSUMPTIONS.md
