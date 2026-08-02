@@ -1,10 +1,10 @@
 /**
  * Shapes returned by the API.
  *
- * Request payloads are typed from `@smp/contracts` so the client validates
- * against the same schema the server enforces. These read-side shapes mirror the
- * domain package rather than importing it, keeping the browser bundle free of
- * server-side code.
+ * Declared here rather than imported from the API workspace, so the browser
+ * bundle carries no server-side code. That means they are a hand-kept mirror of
+ * the server's responses: `App.test.tsx` stubs `fetch` with these same shapes,
+ * so a drift shows up as a failing test rather than at runtime.
  */
 
 export interface Planet {
