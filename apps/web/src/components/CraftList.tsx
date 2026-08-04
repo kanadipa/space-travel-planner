@@ -24,9 +24,9 @@ export function CraftList({ evaluations, fleet, selectedId, onSelect }: Props) {
   const feasibleCount = evaluations.filter((e) => e.feasible).length;
 
   return (
-    <section className={styles.section}>
+    <section className={styles.section} aria-labelledby="craft-heading">
       <header className={styles.header}>
-        <h2>Spacecraft</h2>
+        <h2 id="craft-heading">Spacecraft</h2>
         <span className={styles.count}>
           {feasibleCount} of {evaluations.length} can fly this route
         </span>

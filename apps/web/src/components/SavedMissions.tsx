@@ -17,9 +17,9 @@ interface Props {
  */
 export function SavedMissions({ missions, activeId, onLoad, onDelete }: Props) {
   return (
-    <section className={styles.section}>
+    <section className={styles.section} aria-labelledby="saved-heading">
       <header className={styles.header}>
-        <h2>Saved missions</h2>
+        <h2 id="saved-heading">Saved missions</h2>
         <span className={styles.count}>{missions.length}</span>
       </header>
 
