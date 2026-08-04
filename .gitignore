@@ -11,3 +11,8 @@ coverage/
 .DS_Store
 .vite/
 *.tsbuildinfo
+
+# Playwright
+test-results/
+playwright-report/
+.playwright/
