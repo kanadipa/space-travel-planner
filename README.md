@@ -54,6 +54,7 @@ apps/api             NestJS + Prisma
   src/missions/      persistence, DTOs, validation
 apps/web             React + Vite client
 data/                supplied planet and spacecraft data
+e2e/                 Playwright: real browser, built API, real Postgres
 ```
 
 `src/domain` imports nothing from the framework. It takes plain objects and
@@ -150,7 +151,8 @@ deliberately.
 
 ## Testing
 
-95 tests across three layers, all runnable with `npm test` and no Docker.
+106 tests across four layers. The first three run with `npm test` and need no
+Docker; the end-to-end layer needs Postgres up.
 
 **Domain (45).** Pure arithmetic with several easy-to-get-wrong edge cases, so
 this is where the tests are concentrated: distance symmetry and identity, the
@@ -168,7 +170,7 @@ persisted.
 The database is swapped for an in-memory double. The behaviour under test is the
 HTTP contract, not Prisma's query building, and the 422 case is rejected before
 any write. The trade-off: a mismatch between the code and the real schema is not
-caught here — `prisma migrate` and running the app cover that.
+caught here — the end-to-end layer below exists for exactly that.
 
 **Client (15).** The planner screen against a stubbed `fetch` returning the API's
 real shapes. Covers the product decisions rather than the markup: excluded craft
@@ -177,8 +179,27 @@ blocked until a feasible craft is chosen, a 422 surfaces the server's reasons,
 and — the contract the server depends on — a save sends inputs only, never a
 distance or a duration.
 
+### End to end (11)
+
+```bash
+docker compose up -d
+npm run test:e2e
+```
+
+Playwright drives a real Chromium against the built API and a real Postgres, on
+its own database and its own ports so it cannot disturb a dev server that is
+already up. `migrate deploy` applies the committed migrations, so each run also
+proves they apply cleanly from scratch.
+
+This is the layer that covers what the in-memory double cannot: that the code and
+the migrated schema actually agree. Dropping a single column from the database
+leaves all 95 other tests passing and fails these. It checks the column types
+that would really break — `String[]` for destination order, `Json` for the leg
+breakdown and the spacecraft snapshot — plus the unique-reference constraint, and
+the full agent journey: plan, save, reload the page, load back, amend, delete.
+
 ## Not built
 
-- End-to-end tests against a real database and browser
+- Cross-browser and mobile viewports — Playwright runs Chromium only
 - Craft availability across saved missions — see ASSUMPTIONS.md
 - Passenger pooling across bookings — see ASSUMPTIONS.md
