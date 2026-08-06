@@ -14,10 +14,14 @@
     "api:dev": "npm run dev -w @smp/api",
     "web:dev": "npm run dev -w @smp/web",
     "test:e2e": "npm run build -w @smp/api && playwright test",
-    "test:e2e:ui": "npm run build -w @smp/api && playwright test --ui"
+    "test:e2e:ui": "npm run build -w @smp/api && playwright test --ui",
+    "postinstall": "prisma generate --schema apps/api/prisma/schema.prisma",
+    "setup": "node scripts/setup.mjs",
+    "dev": "node scripts/setup.mjs --dev && concurrently -n api,web -c cyan,magenta \"npm:api:dev\" \"npm:web:dev\""
   },
   "devDependencies": {
     "@playwright/test": "^1.62.0",
+    "concurrently": "^10.0.4",
     "typescript": "^5.5.4"
   },
   "engines": {

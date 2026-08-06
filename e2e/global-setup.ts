@@ -12,6 +12,13 @@ import { E2E_DATABASE_URL } from './config';
  * mismatch between the code and the actual schema is invisible to them.
  */
 export default async function globalSetup(): Promise<void> {
+  // Brings Postgres up and waits for it to accept connections, so a run with
+  // Docker down fails with that message rather than a webServer timeout. Uses
+  // --db-only: this run supplies its own DATABASE_URL and migrates it below.
+  execFileSync(process.execPath, [resolve(__dirname, '../scripts/setup.mjs'), '--db-only'], {
+    stdio: 'inherit',
+  });
+
   const schema = resolve(__dirname, '../apps/api/prisma/schema.prisma');
 
   execFileSync('npx', ['prisma', 'migrate', 'deploy', '--schema', schema], {
