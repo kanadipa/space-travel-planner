@@ -10,34 +10,38 @@ the fleet evaluated against it](./docs/planner.jpg)
 
 ## Running it
 
-Requires Node 20 or later and Docker.
+Requires Node 20 or later, and Docker running.
 
 ```bash
 git clone <repo> && cd space-mission-planner
 npm install
-
-docker compose up -d                         # Postgres on 5432
-cp apps/api/.env.example apps/api/.env
-npm run prisma:migrate -w @smp/api
-
-npm run api:dev                              # http://localhost:3000/api
+npm run dev
 ```
 
-In a second terminal:
+That is the whole thing. `npm run dev` writes `apps/api/.env` from the example if
+it is missing, starts Postgres, **waits for it to accept connections**, applies
+the migrations, and then runs both servers in one terminal:
 
-```bash
-npm run web:dev                              # http://localhost:5173
-```
+- API — http://localhost:3000/api
+- Web — http://localhost:5173
+
+Every step checks before it acts, so it is safe to run repeatedly; it is also
+what you run after pulling a schema change. `npm run setup` does the preparation
+without starting the servers.
+
+Two things it removes, both of which used to bite:
+
+- `docker compose up -d` returns before Postgres is ready, so migrating straight
+  after it is a race that fails intermittently.
+- The Prisma client must exist before the API will typecheck. A `postinstall`
+  hook now generates it, so a fresh clone typechecks immediately.
 
 Tests:
 
 ```bash
-npm test
+npm test          # 95 tests, no Docker needed
+npm run test:e2e  # 11 more, against a real browser and Postgres
 ```
-
-The domain tests need neither the database nor the Prisma client. Typechecking the
-API does need the client, so run `npm run prisma:migrate -w @smp/api` (or
-`prisma:generate`) before `npm run typecheck --workspaces`.
 
 Without Docker: set the `datasource` provider in `apps/api/prisma/schema.prisma`
 to `sqlite` and `DATABASE_URL="file:./dev.db"`. Postgres-specific columns
@@ -55,6 +59,7 @@ apps/api             NestJS + Prisma
 apps/web             React + Vite client
 data/                supplied planet and spacecraft data
 e2e/                 Playwright: real browser, built API, real Postgres
+scripts/setup.mjs    one-command first launch
 ```
 
 `src/domain` imports nothing from the framework. It takes plain objects and
