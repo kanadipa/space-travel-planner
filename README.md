@@ -10,7 +10,8 @@ the fleet evaluated against it](./docs/planner.jpg)
 
 ## Running it
 
-Requires Node 20 or later, and Docker running.
+You need **Node 20 or later** and **Docker Desktop running**. Postgres runs in a
+container — you do not need to type any `docker` commands yourself.
 
 ```bash
 git clone <repo> && cd space-mission-planner
@@ -18,35 +19,26 @@ npm install
 npm run dev
 ```
 
-That is the whole thing. `npm run dev` writes `apps/api/.env` from the example if
-it is missing, starts Postgres, **waits for it to accept connections**, applies
-the migrations, and then runs both servers in one terminal:
+Then open **http://localhost:5173**.
 
-- API — http://localhost:3000/api
-- Web — http://localhost:5173
+`npm run dev` does the whole setup before it starts anything: creates
+`apps/api/.env`, starts the Postgres container, waits until it is accepting
+connections, applies the migrations, and then runs the API and the web client
+together in one terminal. It is safe to re-run — every step checks before it
+acts — so it is also what you run after pulling a schema change.
 
-Every step checks before it acts, so it is safe to run repeatedly; it is also
-what you run after pulling a schema change. `npm run setup` does the preparation
-without starting the servers.
+| Command | What it does |
+|---|---|
+| `npm run dev` | Setup, then both servers — API on 3000, web on 5173 |
+| `npm run setup` | The setup only, without starting the servers |
+| `npm test` | 95 unit, integration and component tests. No Docker needed |
+| `npm run test:e2e` | 11 browser tests against a real Postgres |
+| `npm run db:down` | Stops the Postgres container |
 
-Two things it removes, both of which used to bite:
-
-- `docker compose up -d` returns before Postgres is ready, so migrating straight
-  after it is a race that fails intermittently.
-- The Prisma client must exist before the API will typecheck. A `postinstall`
-  hook now generates it, so a fresh clone typechecks immediately.
-
-Tests:
-
-```bash
-npm test          # 95 tests, no Docker needed
-npm run test:e2e  # 11 more, against a real browser and Postgres
-```
-
-Without Docker: set the `datasource` provider in `apps/api/prisma/schema.prisma`
-to `sqlite` and `DATABASE_URL="file:./dev.db"`. Postgres-specific columns
-(`String[]`, `Json`) would need to become serialised strings, so the Docker path
-is the supported one.
+If you cannot run Docker, switch the `datasource` in
+`apps/api/prisma/schema.prisma` to `sqlite` with `DATABASE_URL="file:./dev.db"`.
+The `String[]` and `Json` columns would have to become serialised strings first,
+so that path is untested — Docker is the supported one.
 
 ## Repository layout
 
