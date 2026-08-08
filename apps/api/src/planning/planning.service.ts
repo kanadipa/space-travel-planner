@@ -12,16 +12,14 @@ interface CraftRequest extends RouteRequest {
 }
 
 /**
- * The single place the domain layer is invoked.
- *
- * Both the live evaluation endpoint and the save path go through here, so a
- * mission can never be persisted with figures the evaluator would not produce.
+ * The only caller of the domain layer. Both the evaluation endpoint and the save
+ * path go through it, so a saved mission cannot hold figures the evaluator would
+ * not produce.
  */
 @Injectable()
 export class PlanningService {
   constructor(private readonly catalog: CatalogService) {}
 
-  /** Evaluates the whole fleet against a proposed route. */
   evaluateFleetFor(request: RouteRequest): { anyFeasible: boolean; evaluations: Evaluation[] } {
     const destinations = this.catalog.destinationsByIds(request.destinationIds);
 

@@ -4,13 +4,8 @@ import { buildItinerary } from './route';
 import type { Evaluation, Failure, Itinerary, Planet, Spacecraft } from './types';
 
 /**
- * Checks are independent — none consumes another's result — so all four run
- * unconditionally and every failure is collected. An agent looking at a list of
- * rejected craft can then see the full reason for each rather than one at a time.
- *
- * Failures are ordered by how easily the agent can act on them. Temperature is
- * intrinsic to the craft and route, so it is reported last and marked
- * non-actionable: no change to passenger count will ever resolve it.
+ * All four checks run: none depends on another's result, and an agent wants every
+ * reason at once. Failures come back ordered by how easily they can be acted on.
  */
 export function evaluate(
   craft: Spacecraft,
@@ -73,12 +68,7 @@ export function evaluate(
   };
 }
 
-/**
- * Temperature binds at every body the route is exposed to, not only at the
- * destinations. A planet flown around on the way to somewhere else still has to
- * be survived, so one unsuitable body anywhere on the path rules the craft out
- * for the whole mission.
- */
+/** Binds at every body on the route, including ones only flown around. */
 function temperatureFailures(
   craft: Spacecraft,
   itinerary: Itinerary,

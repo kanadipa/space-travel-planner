@@ -1,15 +1,9 @@
 import { ValidationPipe, type INestApplication } from '@nestjs/common';
 
 /**
- * Applies the request pipeline shared by the running server and the tests.
- *
- * The prefix and the pipe used to be configured inline in `bootstrap()`. That
- * left integration tests re-declaring them, so a test could pass against a
- * pipeline that no longer matched the one users hit. Both now call this.
- *
- * `whitelist` strips properties the DTO does not declare, so a client cannot
- * smuggle extra fields through; `transform` turns the plain JSON body into a
- * DTO instance so `@Type(() => Date)` produces a real Date.
+ * The request pipeline, shared by `main.ts` and the tests so a test cannot pass
+ * against a pipeline users do not hit. `whitelist` stops a client smuggling
+ * fields the DTO does not declare; `transform` gives `@Type(() => Date)` a Date.
  */
 export function configureApp(app: INestApplication): INestApplication {
   app.setGlobalPrefix('api');

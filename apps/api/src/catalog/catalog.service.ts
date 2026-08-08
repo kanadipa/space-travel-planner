@@ -44,11 +44,8 @@ export function slugify(name: string): string {
 }
 
 /**
- * Loads the supplied catalogue once at startup.
- *
- * The data is static and small, so it is read into memory rather than stored in
- * the database. Snake_case is normalised to camelCase here, at the boundary, so
- * the domain layer never has to know what the file looks like.
+ * Loads the supplied catalogue once at startup. Static and small, so it stays in
+ * memory rather than the database; snake_case is normalised here, at the edge.
  */
 @Injectable()
 export class CatalogService {

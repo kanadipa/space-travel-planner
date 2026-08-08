@@ -8,13 +8,9 @@ function directionBetween(from: Planet, to: Planet): Direction {
 }
 
 /**
- * Orders the stops of a round trip that begins and ends at the departure planet.
- *
- * Every body sits on one axis, so a round trip covering a set of destinations
- * always travels twice the span on each side of the departure point, whatever
- * order the stops are visited in. Total distance is therefore invariant to
- * ordering, and the outward-then-inward sweep below is chosen because it reads
- * naturally on a timeline rather than because it is uniquely optimal.
+ * On one axis a round trip covers twice the span each side of the departure point
+ * whatever order the stops come in, so total distance is invariant to ordering.
+ * The outward-then-inward sweep is chosen because it reads well on a timeline.
  */
 export function orderStops(departure: Planet, destinations: readonly Planet[]): Planet[] {
   const unique = new Map<string, Planet>();

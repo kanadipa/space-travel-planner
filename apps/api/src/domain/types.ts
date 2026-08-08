@@ -1,36 +1,21 @@
-/**
- * Domain types.
- *
- * These mirror the supplied YAML, with names normalised to camelCase at the
- * parsing boundary. Nothing in this folder imports Nest, Prisma, or anything
- * that touches the network or a disk — it receives plain objects and returns
- * plain objects, which is what makes it testable on its own.
- */
-
 export type BodyType = 'Planet' | 'Star';
 
 export interface Planet {
   /** Stable identifier, derived from the name at parse time. */
   id: string;
   name: string;
-  /**
-   * The supplied data includes the sun as a `Star`. No craft in the fleet has an
-   * operational range anywhere near its temperature, so it is excluded by the
-   * ordinary temperature rule without special-casing.
-   */
   type: BodyType;
   /** Distance from the sun, centre to centre (prerequisite 3c). */
   distanceFromSunKm: number;
   diameterKm: number;
   averageTemperatureC: number;
   potentiallyHabitable: boolean;
-  /** Descriptive only — surfaced in the UI, not used in any rule. */
+
+  // Carried through from the YAML but used by no rule: 6a declares gravity
+  // negligible and 6c declares moons irrelevant. See ASSUMPTIONS.md.
   weatherPatterns?: string;
-  /** Not referenced by any stated rule. See ASSUMPTIONS.md. */
   radiationLevelsMsv?: number;
-  /** Prerequisite 6a declares gravity negligible; descriptive only. */
   gravityMPerS2?: number;
-  /** Prerequisite 6c declares moons irrelevant to trajectory; descriptive only. */
   moons?: string[];
 }
 
@@ -48,7 +33,6 @@ export interface Spacecraft {
   operationalTemperatureCMax: number;
 }
 
-/** A single point-to-point movement between two planet surfaces. */
 export interface Leg {
   fromPlanetId: string;
   toPlanetId: string;

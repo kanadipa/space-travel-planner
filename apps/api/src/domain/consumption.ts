@@ -2,9 +2,8 @@ import { BASE_CONSUMPTION_RATE, HOURS_PER_YEAR, PASSENGER_CONSUMPTION_RATE } fro
 import type { Spacecraft } from './types';
 
 /**
- * Range consumed per km travelled: R = Rb + (Rp * np). Prerequisite 4b.
- * Strictly increasing in passenger count, which makes feasibility monotonic —
- * anything flyable at full capacity is flyable at any lower count.
+ * R = Rb + (Rp * np), per km travelled (4b). Strictly increasing in passenger
+ * count, so feasibility is monotonic: flyable when full is flyable when lighter.
  */
 export function consumptionRate(passengerCount: number): number {
   return BASE_CONSUMPTION_RATE + PASSENGER_CONSUMPTION_RATE * passengerCount;
@@ -14,10 +13,7 @@ export function rangeConsumed(distanceKm: number, passengerCount: number): numbe
   return distanceKm * consumptionRate(passengerCount);
 }
 
-/**
- * The distance a craft can actually cover with a given party aboard.
- * Falls as passengers are added, so a lightly loaded craft is a long-range craft.
- */
+/** Falls as passengers are added: a lightly loaded craft is a long-range craft. */
 export function effectiveReachKm(craft: Spacecraft, passengerCount: number): number {
   return craft.rangeKm / consumptionRate(passengerCount);
 }

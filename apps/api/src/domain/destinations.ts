@@ -8,15 +8,9 @@ export function canSurvive(craft: Spacecraft, body: Planet): boolean {
 }
 
 /**
- * Bodies that could plausibly be visited by something in the fleet.
- *
- * The supplied data includes the sun, which no craft can survive. Rather than
- * special-casing it by type, a body is excluded when no craft in the fleet has an
- * operational temperature range covering it — the sun falls out of that rule, and
- * so would any other body added later with the same problem.
- *
- * This filters what an agent may choose. It does not weaken the per-craft
- * temperature check in `evaluate`, which still binds at every body on the route.
+ * The sun is excluded because no craft survives its temperature, not because its
+ * type is Star. This only filters what an agent may choose — the per-craft check
+ * in `evaluate` still binds at every body on the route.
  */
 export function selectableDestinations(
   bodies: readonly Planet[],
@@ -29,7 +23,7 @@ export function selectableDestinations(
     .sort((a, b) => a.distanceFromSunKm - b.distanceFromSunKm);
 }
 
-/** Bodies excluded from selection, with the reason, so the UI can explain itself. */
+/** The excluded bodies with their reason, so the UI can explain itself. */
 export function unreachableBodies(
   bodies: readonly Planet[],
   fleet: readonly Spacecraft[],

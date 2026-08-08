@@ -77,15 +77,10 @@ export class MissionsService {
   }
 
   /**
-   * Recomputes from the supplied inputs and refuses to persist anything the
-   * evaluator rejects.
-   *
-   * The client never sends distances, durations or totals. Trusting them would
-   * leave the server's copy of the domain logic doing nothing, and would let a
-   * stale or malformed client write a physically impossible mission.
-   *
-   * A well-formed request describing an infeasible mission is 422 rather than
-   * 400: the payload was understood, the mission just cannot be flown.
+   * A well-formed request describing an infeasible mission is 422, not 400: the
+   * payload was understood, the mission just cannot be flown. Everything is
+   * recomputed here because trusting a client's figures would let a stale one
+   * persist a physically impossible plan.
    */
   private validate(input: MissionInput): { evaluation: Evaluation; craft: Spacecraft } {
     const { evaluation, craft } = this.planning.evaluateOne(input);

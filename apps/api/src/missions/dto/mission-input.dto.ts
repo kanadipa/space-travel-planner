@@ -10,11 +10,7 @@ import {
   Min,
 } from 'class-validator';
 
-/**
- * The inputs an agent supplies. Everything else about a mission is derived by
- * the server, so nothing computed appears here — a client cannot assert a
- * distance or a duration even if it wants to.
- */
+/** The inputs an agent supplies. Nothing computed appears here, by design. */
 export class CreateMissionDto {
   @IsString()
   spacecraftId!: string;
@@ -39,7 +35,6 @@ export class CreateMissionDto {
   name?: string;
 }
 
-/** Evaluation runs before a craft is chosen, so no spacecraft is supplied. */
 export class EvaluateDto {
   @IsInt({ message: 'Passenger count must be a whole number.' })
   @Min(1, { message: 'A mission needs at least one passenger.' })
