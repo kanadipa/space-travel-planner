@@ -1,63 +1,36 @@
 import { defineConfig, devices } from '@playwright/test';
-import { API_PORT, API_URL, E2E_DATABASE_URL, WEB_PORT, WEB_URL } from './e2e/config';
+
+const WEB_URL = 'http://localhost:5173';
 
 /**
- * The only layer that runs the real thing end to end: a real browser, the built
- * API, and a real Postgres.
+ * The one layer that runs the real thing: a real browser against the built API
+ * and the same Postgres the app uses in development.
  *
- * The unit and integration suites deliberately avoid a database so `npm test`
- * needs no Docker. The cost of that is they cannot catch a mismatch between the
- * code and the actual schema — every `String[]` and `Json` column here is
- * written and read back through Prisma against migrated tables.
- *
- * Run with `npm run test:e2e`. Requires `docker compose up -d`.
+ * Run with `npm run test:e2e`, which brings the database up first.
  */
 export default defineConfig({
   testDir: './e2e',
-  testMatch: '**/*.spec.ts',
 
-  // A shared database makes parallel writes to the mission list order-dependent.
-  fullyParallel: false,
+  // The tests share one mission list, so they cannot run in parallel.
   workers: 1,
 
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? 'list' : [['list'], ['html', { open: 'never' }]],
-
-  globalSetup: './e2e/global-setup.ts',
-
-  use: {
-    baseURL: WEB_URL,
-    trace: 'retain-on-failure',
-    screenshot: 'only-on-failure',
-  },
-
+  reporter: 'list',
+  use: { baseURL: WEB_URL, trace: 'retain-on-failure' },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
 
   webServer: [
     {
       // The compiled app, not the watcher — this is the artefact that ships.
       command: 'npm run start -w @smp/api',
-      url: `${API_URL}/api/spacecraft`,
-      reuseExistingServer: false,
+      url: 'http://localhost:3000/api/spacecraft',
+      reuseExistingServer: true,
       timeout: 60_000,
-      stdout: 'pipe',
-      stderr: 'pipe',
-      env: {
-        DATABASE_URL: E2E_DATABASE_URL,
-        PORT: String(API_PORT),
-        WEB_ORIGIN: WEB_URL,
-      },
     },
     {
-      command: `npm run dev -w @smp/web -- --port ${WEB_PORT} --strictPort`,
+      command: 'npm run dev -w @smp/web',
       url: WEB_URL,
-      reuseExistingServer: false,
+      reuseExistingServer: true,
       timeout: 60_000,
-      stdout: 'pipe',
-      stderr: 'pipe',
-      // Points the dev server's /api proxy at this run's API rather than :3000.
-      env: { API_URL },
     },
   ],
 });
