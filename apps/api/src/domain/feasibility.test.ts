@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { alpha, beta, fragile, gamma, planets, workhorse } from './__fixtures__/planets';
 import { evaluate, evaluateFleet } from './feasibility';
 

@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { alpha, beta, fragile, gamma, inner, planets, workhorse } from './__fixtures__/planets';
 import { canSurvive, selectableDestinations, unreachableBodies } from './destinations';
 

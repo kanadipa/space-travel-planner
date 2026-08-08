@@ -1,13 +1,7 @@
-import 'reflect-metadata';
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createTestApp } from '../testing/test-app';
 
-/**
- * Covers the outcome the README calls out as deliberate: an evaluation that
- * finds nothing is a 200 answer, not an error.
- */
 describe('POST /api/evaluations', () => {
   let app: INestApplication;
 

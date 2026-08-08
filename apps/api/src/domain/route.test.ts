@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { alpha, beta, gamma, inner, planets } from './__fixtures__/planets';
 import { detourFor } from './geometry';
 import { buildItinerary, orderStops } from './route';

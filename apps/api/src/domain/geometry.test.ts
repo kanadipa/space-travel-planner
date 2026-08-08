@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { alpha, beta, gamma, inner, planets } from './__fixtures__/planets';
 import { detourFor, planetsBetween, radiusOf, surfaceDistanceBetween } from './geometry';
 

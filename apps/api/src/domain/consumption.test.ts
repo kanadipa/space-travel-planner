@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { workhorse } from './__fixtures__/planets';
 import { consumptionRate, durationYears, effectiveReachKm, rangeConsumed } from './consumption';
 

@@ -1,7 +1,5 @@
-import 'reflect-metadata';
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createTestApp } from '../testing/test-app';
 
 describe('catalogue endpoints', () => {
@@ -32,11 +30,6 @@ describe('catalogue endpoints', () => {
     ]);
   });
 
-  /**
-   * The Sun is excluded because no craft survives 5,505 °C, not because its type
-   * is Star. Asserting the reason rather than the absence keeps the rule
-   * data-driven — a hot planet would drop out the same way.
-   */
   it('excludes the Sun on temperature, with a reason', async () => {
     const response = await server().get('/api/planets').expect(200);
 

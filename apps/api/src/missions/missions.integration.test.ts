@@ -1,7 +1,5 @@
-import 'reflect-metadata';
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createTestApp } from '../testing/test-app';
 
 const FLYABLE = {
@@ -87,11 +85,6 @@ describe('missions', () => {
     });
   });
 
-  /**
-   * The distinction the brief's reviewers are most likely to probe: a body that
-   * parsed cleanly but describes a mission that cannot be flown is 422, not 400,
-   * and carries the structured reasons the UI renders.
-   */
   describe('422 — well-formed but unflyable', () => {
     it('refuses a mission beyond the craft range', async () => {
       const response = await server()

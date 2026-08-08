@@ -6,18 +6,16 @@
     "apps/*"
   ],
   "scripts": {
-    "test": "npm run test --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present && tsc --noEmit -p tsconfig.e2e.json",
-    "build": "npm run build --workspaces --if-present",
-    "db:up": "docker compose up -d",
-    "db:down": "docker compose down",
+    "setup": "node scripts/setup.mjs",
+    "dev": "npm run setup && concurrently -n api,web -c cyan,magenta \"npm:api:dev\" \"npm:web:dev\"",
     "api:dev": "npm run dev -w @smp/api",
     "web:dev": "npm run dev -w @smp/web",
-    "test:e2e": "npm run build -w @smp/api && playwright test",
-    "test:e2e:ui": "npm run build -w @smp/api && playwright test --ui",
-    "postinstall": "prisma generate --schema apps/api/prisma/schema.prisma",
-    "setup": "node scripts/setup.mjs",
-    "dev": "node scripts/setup.mjs --dev && concurrently -n api,web -c cyan,magenta \"npm:api:dev\" \"npm:web:dev\""
+    "test": "npm run test --workspaces --if-present",
+    "test:e2e": "npm run setup && npm run build -w @smp/api && playwright test",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "db:down": "docker compose down",
+    "postinstall": "npm run prisma:generate -w @smp/api"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.0",
