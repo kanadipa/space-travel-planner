@@ -1,9 +1,8 @@
+/* The diagram sits directly on the page. Framing it as well as the planets
+   would put an outline inside an outline. */
 .figure {
-  margin: 0;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 12px 8px 14px;
+  margin: 0 0 18px;
+  padding: 4px 0 0;
 }
 
 .svg {
@@ -13,46 +12,32 @@
 }
 
 .axis {
-  stroke: var(--line-strong);
-  stroke-width: 1;
+  stroke: var(--surface-sunk);
+  stroke-width: 3;
+  stroke-linecap: round;
 }
 
 .route {
-  stroke: var(--accent);
-  stroke-width: 2.5;
+  stroke: var(--ink);
+  stroke-width: 4.5;
+  stroke-linecap: round;
 }
 
 .detour {
   fill: none;
-  stroke: var(--accent);
-  stroke-width: 2;
-  stroke-dasharray: 3 3;
-}
-
-.departure {
-  fill: var(--accent);
-}
-
-.selected {
-  fill: var(--ok);
-}
-
-.passed {
-  fill: var(--accent-dim);
-  stroke: var(--accent);
-  stroke-width: 1;
-}
-
-.idle {
-  fill: var(--line-strong);
+  stroke: var(--ink);
+  stroke-width: 3.5;
+  stroke-dasharray: 6 5;
+  stroke-linecap: round;
 }
 
 .label,
 .labelOn,
 .tag {
   text-anchor: middle;
-  font-family: var(--mono);
+  font-family: var(--sans);
   font-size: 11px;
+  font-weight: 700;
 }
 
 .label {
@@ -61,11 +46,15 @@
 
 .labelOn {
   fill: var(--text);
+  font-weight: 800;
+  font-size: 12px;
 }
 
 .tag {
   fill: var(--text-dim);
+  font-family: var(--mono);
   font-size: 10px;
+  font-weight: 400;
 }
 
 .caption {
@@ -73,7 +62,7 @@
   flex-wrap: wrap;
   gap: 16px;
   align-items: center;
-  padding: 6px 12px 0;
+  padding: 4px 4px 0;
   font-size: 12px;
   color: var(--text-faint);
 }
@@ -88,7 +77,8 @@
 .keyDetour {
   width: 16px;
   height: 0;
-  border-top: 2px solid var(--accent);
+  border-top: 3px solid var(--ink);
+  border-radius: 2px;
 }
 
 .keyDetour {

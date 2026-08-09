@@ -1,10 +1,7 @@
 /**
- * Shapes returned by the API.
- *
- * Declared here rather than imported from the API workspace, so the browser
- * bundle carries no server-side code. That means they are a hand-kept mirror of
- * the server's responses: `App.test.tsx` stubs `fetch` with these same shapes,
- * so a drift shows up as a failing test rather than at runtime.
+ * A hand-kept mirror of the API's responses, so the browser bundle carries no
+ * server code. `App.test.tsx` stubs `fetch` with these shapes, which is what
+ * turns a drift into a failing test rather than a runtime surprise.
  */
 
 export interface Planet {

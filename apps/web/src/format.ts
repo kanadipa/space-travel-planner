@@ -23,12 +23,7 @@ export function isoDate(value: Date | string): string {
   return date.toISOString().slice(0, 10);
 }
 
-/**
- * Renders a date that may be centuries away.
- *
- * Missions run for years, so a saved plan's arrival can fall outside the range a
- * locale short-date makes obvious. The year is always shown.
- */
+/** Missions run for years, so the year is always shown. */
 export function longDate(value: Date | string): string {
   const date = typeof value === 'string' ? new Date(value) : value;
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });

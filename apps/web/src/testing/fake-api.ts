@@ -111,15 +111,15 @@ export const mixedEvaluation: EvaluationResponse = {
         code: 'CAPACITY_EXCEEDED',
         actionable: true,
         message: 'Carries 3, 4 booked. Reduce the party to 3 or choose a larger craft.',
-        detail: {},
+        detail: { capacity: 3, passengerCount: 4 },
       },
     ]),
     evaluation('millennial-hopper', false, [
       {
         code: 'TEMPERATURE_OUT_OF_BOUNDS',
         actionable: false,
-        message: 'Venus reaches 464 °C, above the 150 °C ceiling.',
-        detail: {},
+        message: 'Cannot operate at Venus (464 °C, rated -300 to 150 °C).',
+        detail: { planetName: 'Venus', planetTemperatureC: 464, minC: -300, maxC: 150 },
       },
     ]),
   ],
@@ -174,12 +174,8 @@ interface FakeApiOptions {
 }
 
 /**
- * Stubs `fetch` with the API's contract.
- *
- * The client is tested against the shapes the server actually returns rather
- * than against a mocked `api` module, so a change to a response shape shows up
- * here. Every request is recorded, which is what lets a test assert the client
- * sends inputs only.
+ * Stubs `fetch` rather than the `api` module, so a change to a response shape
+ * shows up here. Requests are recorded so a test can assert what was sent.
  */
 export function installFakeApi(options: FakeApiOptions = {}) {
   const requests: RecordedRequest[] = [];

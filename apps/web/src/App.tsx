@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ApiError, api, type MissionInput } from './api';
 import { distance, isoDate, longDate, percent, years } from './format';
 import { Controls } from './components/Controls';
@@ -8,10 +8,7 @@ import { TrajectoryDiagram } from './components/TrajectoryDiagram';
 import type { CatalogResponse, Evaluation, Failure, Mission, Spacecraft } from './types';
 import styles from './App.module.css';
 
-/**
- * The supplied data carries no epoch, and missions run for years, so the planner
- * needs a clock to sit on. See ASSUMPTIONS.md.
- */
+/** The supplied data carries no epoch and missions run for years. See ASSUMPTIONS.md. */
 function defaultDepartureDate(): string {
   const now = new Date();
   return isoDate(new Date(Date.UTC(2041, now.getUTCMonth(), now.getUTCDate())));
@@ -33,12 +30,6 @@ export function App() {
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saveFailures, setSaveFailures] = useState<Failure[] | null>(null);
-  const [savedReference, setSavedReference] = useState<string | null>(null);
-
-  const maxCapacity = useMemo(
-    () => (fleet.length ? Math.max(...fleet.map((c) => c.capacity)) : 30),
-    [fleet],
-  );
 
   useEffect(() => {
     Promise.all([api.planets(), api.spacecraft(), api.listMissions()])
@@ -52,8 +43,8 @@ export function App() {
 
   /**
    * Debounced so dragging the passenger slider does not fire a request per frame.
-   * The evaluation is cheap, but a burst of in-flight requests can resolve out of
-   * order and show a stale answer.
+   * A response is dropped if its inputs are already stale, because a burst of
+   * requests can resolve out of order and show an answer to an older question.
    */
   useEffect(() => {
     if (selectedIds.length === 0) {
@@ -68,8 +59,7 @@ export function App() {
       api
         .evaluate({ passengerCount, destinationIds: selectedIds, departureDate })
         .then((response) => {
-          if (cancelled) return;
-          setEvaluations(response.evaluations);
+          if (!cancelled) setEvaluations(response.evaluations);
         })
         .catch(() => {
           if (!cancelled) setEvaluations([]);
@@ -85,38 +75,41 @@ export function App() {
     };
   }, [selectedIds, passengerCount, departureDate]);
 
-  /** A chosen craft that stops being feasible must not stay selected. */
-  useEffect(() => {
-    if (!craftId) return;
-    const still = evaluations.find((e) => e.spacecraftId === craftId && e.feasible);
-    if (!still) setCraftId(null);
-  }, [evaluations, craftId]);
-
-  const selected = evaluations.find((e) => e.spacecraftId === craftId) ?? null;
+  // Derived, not stored: a craft that stops being feasible when the route changes
+  // stops being the selection, with no effect needed to clear it.
+  const selected = evaluations.find((e) => e.spacecraftId === craftId && e.feasible) ?? null;
   const preview = selected ?? evaluations.find((e) => e.feasible) ?? evaluations[0] ?? null;
 
-  const toggleDestination = useCallback((id: string) => {
-    setSavedReference(null);
-    setSelectedIds((current) =>
-      current.includes(id) ? current.filter((x) => x !== id) : [...current, id],
-    );
-  }, []);
+  const editing = missions.find((mission) => mission.id === editingId) ?? null;
+  const unsaved =
+    editing !== null &&
+    (editing.spacecraftId !== craftId ||
+      editing.passengerCount !== passengerCount ||
+      isoDate(editing.departureDate) !== departureDate ||
+      editing.destinationIds.join() !== selectedIds.join());
 
-  const reset = () => {
+  const maxCapacity = fleet.length ? Math.max(...fleet.map((craft) => craft.capacity)) : 30;
+
+  function toggleDestination(id: string) {
+    setSelectedIds((current) =>
+      current.includes(id) ? current.filter((other) => other !== id) : [...current, id],
+    );
+  }
+
+  function reset() {
     setEditingId(null);
     setSelectedIds([]);
     setCraftId(null);
     setPassengerCount(4);
     setDepartureDate(defaultDepartureDate());
     setSaveFailures(null);
-    setSavedReference(null);
-  };
+  }
 
   async function save() {
-    if (!craftId) return;
+    if (!selected) return;
 
     const payload: MissionInput = {
-      spacecraftId: craftId,
+      spacecraftId: selected.spacecraftId,
       passengerCount,
       destinationIds: selectedIds,
       departureDate: new Date(departureDate).toISOString(),
@@ -130,7 +123,6 @@ export function App() {
 
       setMissions(await api.listMissions());
       setEditingId(mission.id);
-      setSavedReference(mission.reference);
     } catch (error) {
       if (error instanceof ApiError && error.status === 422) {
         const body = error.body as { failures?: Failure[] };
@@ -150,7 +142,6 @@ export function App() {
     setDepartureDate(isoDate(mission.departureDate));
     setCraftId(mission.spacecraftId);
     setSaveFailures(null);
-    setSavedReference(mission.reference);
   }
 
   async function remove(id: string) {
@@ -185,13 +176,20 @@ export function App() {
         <div>
           <h1>Mission planner</h1>
           <p className={styles.sub}>
-            Departing {catalog.departure.name} · orbits halted, 40-year window
+            Departing {catalog.departure.name} · orbits halted, 42-year window
           </p>
         </div>
-        {editingId && (
-          <button type="button" className={styles.ghost} onClick={reset}>
-            New mission
-          </button>
+
+        {editing && (
+          <div className={styles.editing}>
+            <span className={styles.editingLabel}>
+              editing <strong>{editing.reference}</strong>
+              {unsaved && <em className={styles.unsaved}>unsaved changes</em>}
+            </span>
+            <button type="button" className={styles.ghost} onClick={reset}>
+              New mission
+            </button>
+          </div>
         )}
       </header>
 
@@ -203,14 +201,8 @@ export function App() {
         departureDate={departureDate}
         maxCapacity={maxCapacity}
         onToggleDestination={toggleDestination}
-        onPassengerCount={(value) => {
-          setSavedReference(null);
-          setPassengerCount(value);
-        }}
-        onDepartureDate={(value) => {
-          setSavedReference(null);
-          setDepartureDate(value);
-        }}
+        onPassengerCount={setPassengerCount}
+        onDepartureDate={setDepartureDate}
       />
 
       <TrajectoryDiagram
@@ -225,7 +217,10 @@ export function App() {
       ) : (
         <>
           <div className={styles.metrics}>
-            <Metric label="Total distance" value={distance(preview?.itinerary.totalDistanceKm ?? 0)} />
+            <Metric
+              label="Total distance"
+              value={distance(preview?.itinerary.totalDistanceKm ?? 0)}
+            />
             <Metric
               label="Consumption rate"
               value={(preview?.consumptionRate ?? 1).toFixed(3)}
@@ -246,27 +241,17 @@ export function App() {
           <CraftList
             evaluations={evaluations}
             fleet={fleet}
-            selectedId={craftId}
-            onSelect={(id) => {
-              setSavedReference(null);
-              setCraftId(id);
-            }}
+            selectedId={selected?.spacecraftId ?? null}
+            onSelect={setCraftId}
           />
 
           <section className={styles.savePanel}>
             <div>
-              {savedReference ? (
-                <p className={styles.saved}>
-                  Saved as <strong>{savedReference}</strong>
-                  {editingId ? ' — further edits update this plan.' : '.'}
-                </p>
-              ) : (
-                <p className={styles.hint}>
-                  {craftId
-                    ? 'The server revalidates the whole mission before it is stored.'
-                    : 'Choose a feasible spacecraft to save this mission.'}
-                </p>
-              )}
+              <p className={styles.hint}>
+                {selected
+                  ? 'The server revalidates the whole mission before it is stored.'
+                  : 'Choose a feasible spacecraft to save this mission.'}
+              </p>
 
               {saveFailures && saveFailures.length > 0 && (
                 <ul className={styles.saveErrors}>
@@ -281,9 +266,9 @@ export function App() {
               type="button"
               className={styles.primary}
               onClick={save}
-              disabled={!craftId || evaluating}
+              disabled={!selected || evaluating}
             >
-              {editingId ? 'Update mission' : 'Save mission'}
+              {editing ? 'Update mission' : 'Save mission'}
             </button>
           </section>
         </>
@@ -296,8 +281,7 @@ export function App() {
 
 function arrivalOf(departure: string, durationYears: number): string {
   const start = new Date(departure);
-  const end = new Date(start.getTime() + durationYears * 365.25 * 24 * 3_600_000);
-  return longDate(end);
+  return longDate(new Date(start.getTime() + durationYears * 365.25 * 24 * 3_600_000));
 }
 
 function Metric({ label, value, hint }: { label: string; value: string; hint?: string }) {

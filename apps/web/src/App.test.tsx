@@ -10,15 +10,11 @@ afterEach(() => {
 
 /**
  * The debounce in App is 200ms, so evaluation assertions wait rather than assume.
- *
- * Waits for a craft row rather than the section header: the header renders as
- * "0 of 0" the moment a destination is picked, which would let an assertion run
- * before the response has landed.
+ * Waiting on a craft row and not the section header matters: the header renders
+ * "0 of 0" the moment a destination is picked, before the response lands.
  */
 const waitForEvaluation = () =>
-  waitFor(() => expect(screen.getByText('Serenity XL')).toBeInTheDocument(), {
-    timeout: 3000,
-  });
+  waitFor(() => expect(screen.getByText('Serenity XL')).toBeInTheDocument(), { timeout: 3000 });
 
 const chooseMars = async (user: ReturnType<typeof userEvent.setup>) => {
   await waitFor(() => expect(screen.getByRole('button', { name: /^Mars/ })).toBeInTheDocument());
@@ -68,11 +64,7 @@ describe('planner screen', () => {
     expect(screen.getByText(/1 of 3 can fly this route/i)).toBeInTheDocument();
   });
 
-  /**
-   * The product decision from the README: an excluded craft stays visible with
-   * its reasons, because knowing why is the point.
-   */
-  it('keeps excluded craft visible with their reasons', async () => {
+  it('keeps ruled-out craft visible with their reasons', async () => {
     const user = userEvent.setup();
     installFakeApi();
     render(<App />);
@@ -80,21 +72,23 @@ describe('planner screen', () => {
     await chooseMars(user);
 
     expect(screen.getByText('Galactica Scout')).toBeInTheDocument();
+    expect(screen.getByText('Capacity exceeded')).toBeInTheDocument();
     expect(screen.getByText(/Carries 3, 4 booked/)).toBeInTheDocument();
 
     expect(screen.getByText('Millennial Hopper')).toBeInTheDocument();
-    expect(screen.getByText(/above the 150 °C ceiling/)).toBeInTheDocument();
+    expect(screen.getByText('Above temperature limit')).toBeInTheDocument();
+    expect(screen.getByRole('tooltip', { name: /Cannot operate at Venus/ })).toBeInTheDocument();
   });
 
-  it('does not let an excluded craft be selected', async () => {
+  it('does not offer a ruled-out craft as a choice', async () => {
     const user = userEvent.setup();
     installFakeApi();
     render(<App />);
 
     await chooseMars(user);
 
-    const excluded = screen.getByRole('button', { name: /Galactica Scout/ });
-    expect(excluded).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Serenity XL/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Galactica Scout/ })).not.toBeInTheDocument();
   });
 
   it('says so plainly when nothing in the fleet can fly the route', async () => {
@@ -123,9 +117,9 @@ describe('planner screen', () => {
   });
 
   /**
-   * The contract the API depends on: the client asserts inputs only. If this
-   * ever sends a distance or a duration, the server's recomputation stops being
-   * the single source of truth.
+   * The contract the API depends on: the client asserts inputs only. If this ever
+   * sends a distance or a duration, the server's recomputation stops being the
+   * single source of truth.
    */
   it('sends only inputs when saving, never computed figures', async () => {
     const user = userEvent.setup();
@@ -136,7 +130,9 @@ describe('planner screen', () => {
     await user.click(screen.getByRole('button', { name: /Serenity XL/ }));
     await user.click(screen.getByRole('button', { name: /Save mission/i }));
 
-    await waitFor(() => expect(requests.some((r) => r.method === 'POST' && r.path === '/missions')).toBe(true));
+    await waitFor(() =>
+      expect(requests.some((r) => r.method === 'POST' && r.path === '/missions')).toBe(true),
+    );
 
     const save = requests.find((r) => r.method === 'POST' && r.path === '/missions');
     expect(Object.keys(save!.body as object).sort()).toEqual([
@@ -147,7 +143,7 @@ describe('planner screen', () => {
     ]);
   });
 
-  it('confirms the reference after saving and lists the mission', async () => {
+  it('names the mission being edited in the header once it is saved', async () => {
     const user = userEvent.setup();
     installFakeApi();
     render(<App />);
@@ -156,7 +152,25 @@ describe('planner screen', () => {
     await user.click(screen.getByRole('button', { name: /Serenity XL/ }));
     await user.click(screen.getByRole('button', { name: /Save mission/i }));
 
-    await waitFor(() => expect(screen.getAllByText(/8WDKQ/).length).toBeGreaterThan(0));
+    const banner = await screen.findByText(/editing/i);
+    expect(within(banner).getByText('8WDKQ')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Update mission/i })).toBeInTheDocument();
+  });
+
+  it('flags unsaved changes to a mission already saved', async () => {
+    const user = userEvent.setup();
+    installFakeApi({ missions: [savedMission] });
+    render(<App />);
+
+    await waitFor(() => expect(screen.getByText(savedMission.name)).toBeInTheDocument());
+    await user.click(screen.getByText(savedMission.name).closest('button')!);
+    await waitForEvaluation();
+
+    expect(screen.queryByText(/unsaved changes/i)).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByRole('slider'), { target: { value: '9' } });
+
+    expect(await screen.findByText(/unsaved changes/i)).toBeInTheDocument();
   });
 
   it('surfaces the server failures when a save is refused with 422', async () => {
@@ -183,9 +197,7 @@ describe('planner screen', () => {
     await user.click(screen.getByRole('button', { name: /Serenity XL/ }));
     await user.click(screen.getByRole('button', { name: /Save mission/i }));
 
-    await waitFor(() =>
-      expect(screen.getByText(/Short by 9,386,880,990 km/)).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText(/Short by 9,386,880,990 km/)).toBeInTheDocument());
   });
 
   it('loads a saved mission back into the planner', async () => {
@@ -194,13 +206,13 @@ describe('planner screen', () => {
     render(<App />);
 
     await waitFor(() => expect(screen.getByText(savedMission.name)).toBeInTheDocument());
-
-    const saved = screen.getByText(savedMission.name).closest('button');
-    await user.click(saved!);
-
+    await user.click(screen.getByText(savedMission.name).closest('button')!);
     await waitForEvaluation();
 
     expect(screen.getByRole('button', { name: /^Mars/ })).toHaveAttribute('aria-pressed', 'true');
+
+    // Once in the header banner, once in the saved list.
+    expect(screen.getAllByText(savedMission.reference)).toHaveLength(2);
   });
 
   it('re-evaluates when the passenger count changes', async () => {

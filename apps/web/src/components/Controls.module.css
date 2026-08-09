@@ -1,9 +1,10 @@
 .panel {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  margin-bottom: 12px;
+  background: var(--surface);
+  border: var(--border) solid var(--ink);
+  border-radius: var(--radius-lg);
+  box-shadow: 4px 4px 0 var(--ink);
+  padding: 15px 17px;
+  margin-bottom: 18px;
 }
 
 .row {
@@ -14,37 +15,37 @@
 }
 
 .label {
+  font-family: var(--mono);
   font-size: 12px;
   color: var(--text-dim);
-  text-transform: lowercase;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
 }
 
 .slider {
   flex: 1;
   min-width: 160px;
-  accent-color: var(--accent);
+  accent-color: var(--accent-strong);
 }
 
 .readout {
   font-family: var(--mono);
-  font-size: 15px;
-  min-width: 26px;
+  font-variant-numeric: tabular-nums;
+  font-size: 17px;
+  min-width: 28px;
   text-align: right;
 }
 
 .date {
-  background: var(--panel-2);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 5px 8px;
+  background: var(--surface-soft);
+  border: var(--border) solid var(--ink);
+  border-radius: 10px;
+  padding: 5px 9px;
   font-family: var(--mono);
   font-size: 13px;
-  color-scheme: dark;
 }
 
 .destinations {
-  margin-top: 14px;
+  margin-top: 15px;
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -54,51 +55,57 @@
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 7px;
   flex: 1;
 }
 
+/* Selection is never colour alone: the chosen chip also gains an offset
+   shadow, so it stays distinguishable in greyscale and to colourblind users. */
 .chip,
 .chipOn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   border-radius: 999px;
-  padding: 4px 12px;
+  padding: 5px 13px;
   font-size: 13px;
-  border: 1px solid var(--line-strong);
-  background: transparent;
+  font-weight: 700;
+  border: var(--border) solid var(--ink);
+  background: var(--surface);
   color: var(--text-dim);
-  transition: all 120ms ease;
+  transition: transform 90ms ease, box-shadow 90ms ease;
 }
 
 .chip:hover {
   color: var(--text);
-  border-color: var(--text-faint);
+  background: var(--surface-soft);
 }
 
 .chipOn {
-  background: var(--accent-dim);
-  border-color: var(--accent);
-  color: var(--text);
+  background: var(--accent);
+  color: var(--ink);
+  font-weight: 800;
+  box-shadow: 2px 2px 0 var(--ink);
+  transform: translate(-1px, -1px);
 }
 
 .habitable {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: var(--ok);
+  background: #4faa6b;
+  border: 1.5px solid var(--ink);
 }
 
 .excluded {
-  margin: 12px 0 0;
-  padding-top: 10px;
-  border-top: 1px solid var(--line);
+  margin: 13px 0 0;
+  padding-top: 11px;
+  border-top: 2px solid var(--surface-sunk);
   font-size: 12px;
   color: var(--text-faint);
 }
 
 .excluded strong {
-  font-weight: 500;
+  font-weight: 800;
   color: var(--text-dim);
 }

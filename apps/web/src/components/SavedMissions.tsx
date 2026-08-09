@@ -9,12 +9,6 @@ interface Props {
   onDelete: (id: string) => void;
 }
 
-/**
- * A list, not just a reference lookup.
- *
- * "Loading of individual mission plans" implies the agent can find one again; a
- * bare code field would be a dead end for anyone who lost the code.
- */
 export function SavedMissions({ missions, activeId, onLoad, onDelete }: Props) {
   return (
     <section className={styles.section} aria-labelledby="saved-heading">
