@@ -5,9 +5,6 @@ a set of destinations; the application works out the trajectory, tells them whic
 spacecraft can fly it and why the others cannot, and saves the result as a mission
 plan that can be reloaded later.
 
-![The planner screen: a two-stop route to Mars and Jupiter, with live totals and
-the fleet evaluated against it](./docs/planner.jpg)
-
 ## Running it
 
 You need **Node 20 or later** and **Docker Desktop running**. Postgres runs in a
@@ -31,8 +28,8 @@ acts — so it is also what you run after pulling a schema change.
 |---|---|
 | `npm run dev` | Setup, then both servers — API on 3000, web on 5173 |
 | `npm run setup` | The setup only, without starting the servers |
-| `npm test` | 95 unit, integration and component tests. No Docker needed |
-| `npm run test:e2e` | 11 browser tests against a real Postgres |
+| `npm test` | 96 unit, integration and component tests. Needs the database up |
+| `npm run test:e2e` | 3 browser tests through the full stack |
 | `npm run db:down` | Stops the Postgres container |
 
 If you cannot run Docker, switch the `datasource` in
@@ -55,11 +52,10 @@ scripts/setup.mjs    one-command first launch
 ```
 
 `src/domain` imports nothing from the framework. It takes plain objects and
-returns plain objects, so it can be unit tested without bootstrapping Nest or a
-database — which is why the whole suite runs in under half a second. It is a
-folder rather than a package deliberately: the value is in dependencies pointing
-one way, and a folder enforces that just as well as a workspace would, without
-the build-ordering cost.
+returns plain objects, so the planning rules can be tested without bootstrapping
+Nest or a database. It is a folder rather than a package deliberately: the value
+is in dependencies pointing one way, and a folder enforces that just as well as a
+workspace would, without the build-ordering cost.
 
 ## The planning model
 
@@ -127,14 +123,20 @@ those inputs change. Because range consumption depends on passenger count, the
 consequence of a choice is visible at the moment it is made — moving the slider
 visibly changes which craft can fly the route.
 
-Craft that cannot fly a route stay in the list, greyed out, with every reason
-listed. Actionable failures are shown in amber, intrinsic ones in red and marked
-as unfixable, so an agent can tell at a glance whether adjusting an input would
-help. Hiding excluded options would be less work and considerably less useful.
+Craft that cannot fly a route stay in the list, greyed out, each carrying a short
+reason — amber when the agent can act on it, red when it is intrinsic to the craft
+and route. The server's full sentence is one hover or one tab-stop away, so the
+list stays scannable without hiding why. Dropping excluded craft entirely would be
+less work and considerably less useful.
+
+Which saved plan is open is shown next to the title, with the booking reference and
+a flag when the inputs have been changed but not yet saved.
 
 The trajectory diagram draws the axis, the route, and a dashed arc for each body
-flown around. Its horizontal scale is square-rooted — on a linear axis the four
-inner planets collapse into a single pixel — and the caption says so.
+flown around. Bodies are spaced evenly in orbital order rather than to scale: the
+supplied distances span 58 million to 4.5 billion km, so any true scale puts the
+four inner planets on top of each other. The caption says so, and the detour key
+only appears when the route actually has one.
 
 Evaluation is a debounced call to the API rather than a local computation. One
 execution path means the client's numbers and the server's numbers are provably
@@ -148,8 +150,8 @@ deliberately.
 
 ## Testing
 
-106 tests across four layers. The first three run with `npm test` and need no
-Docker; the end-to-end layer needs Postgres up.
+96 tests in three layers, plus a small end-to-end pass. `npm test` runs the first
+three and needs the database up; `npm run test:e2e` drives a browser.
 
 **Domain (45).** Pure arithmetic with several easy-to-get-wrong edge cases, so
 this is where the tests are concentrated: distance symmetry and identity, the
@@ -157,43 +159,35 @@ radius subtraction, detour counting, the turnaround exemption, consumption
 monotonicity, and failure collection. No mocks, no fixtures beyond four synthetic
 bodies with round numbers.
 
-**API (35).** The real Nest application over supertest, using the same request
-pipeline `main.ts` installs — both call the shared `configureApp`, so a test
-cannot pass against a pipeline users do not hit. Covers the three distinct
-outcomes, with the 422 path taken furthest: each failure mode separately, several
-at once, the actionable flag, and a check that a refused mission is not
-persisted.
+**API (35).** The real Nest application over supertest, against the real Postgres,
+using the same request pipeline `main.ts` installs — both call the shared
+`configureApp`, so a test cannot pass against a pipeline users do not hit. Covers
+the three distinct outcomes, with the 422 path taken furthest: each failure mode
+separately, several at once, the actionable flag, and a check that a refused
+mission is not persisted.
 
-The database is swapped for an in-memory double. The behaviour under test is the
-HTTP contract, not Prisma's query building, and the 422 case is rejected before
-any write. The trade-off: a mismatch between the code and the real schema is not
-caught here — the end-to-end layer below exists for exactly that.
+Running against the real database rather than a stand-in is what makes these tests
+worth trusting: the `String[]` and `Json` columns and the unique-reference
+constraint are exercised as they actually behave. The cost is that `npm test`
+needs Docker, and the mission table is emptied when the suite boots.
 
-**Client (15).** The planner screen against a stubbed `fetch` returning the API's
-real shapes. Covers the product decisions rather than the markup: excluded craft
-stay visible with reasons, an excluded craft cannot be selected, saving is
-blocked until a feasible craft is chosen, a 422 surfaces the server's reasons,
-and — the contract the server depends on — a save sends inputs only, never a
-distance or a duration.
+**Client (16).** The planner screen against a stubbed `fetch` returning the API's
+real shapes. Covers the product decisions rather than the markup: ruled-out craft
+stay visible with their reasons, a ruled-out craft cannot be chosen, saving is
+blocked until a feasible craft is picked, a 422 surfaces the server's reasons, the
+open plan is named in the header, and — the contract the server depends on — a
+save sends inputs only, never a distance or a duration.
 
-### End to end (11)
+### End to end (3)
 
 ```bash
-docker compose up -d
 npm run test:e2e
 ```
 
-Playwright drives a real Chromium against the built API and a real Postgres, on
-its own database and its own ports so it cannot disturb a dev server that is
-already up. `migrate deploy` applies the committed migrations, so each run also
-proves they apply cleanly from scratch.
-
-This is the layer that covers what the in-memory double cannot: that the code and
-the migrated schema actually agree. Dropping a single column from the database
-leaves all 95 other tests passing and fails these. It checks the column types
-that would really break — `String[]` for destination order, `Json` for the leg
-breakdown and the spacecraft snapshot — plus the unique-reference constraint, and
-the full agent journey: plan, save, reload the page, load back, amend, delete.
+Playwright drives a real Chromium against the built API and the same Postgres,
+covering the journey the unit layers cannot: save a plan, reload the page and find
+it still there, then load it back into the planner. It reuses a dev server if one
+is already running.
 
 ## Not built
 
