@@ -5,6 +5,15 @@ import styles from './CraftList.module.css';
 interface Props {
   evaluations: Evaluation[];
   fleet: Spacecraft[];
+  /**
+   * Craft already committed to another saved mission over this window.
+   *
+   * Separate from the failure list on purpose: those craft cannot fly the route at
+   * all, whereas these could if the dates were different. They stay selectable so
+   * the chip explains the dead save button, rather than the craft vanishing from a
+   * list it was in a moment ago.
+   */
+  busyIds: string[];
   selectedId: string | null;
   onSelect: (id: string) => void;
 }
@@ -28,10 +37,13 @@ function reasonFor(failure: Failure): string {
   }
 }
 
-export function CraftList({ evaluations, fleet, selectedId, onSelect }: Props) {
+export function CraftList({ evaluations, fleet, busyIds, selectedId, onSelect }: Props) {
   const byId = new Map(fleet.map((craft) => [craft.id, craft]));
   const feasible = evaluations.filter((evaluation) => evaluation.feasible);
   const ruledOut = evaluations.filter((evaluation) => !evaluation.feasible);
+  /* No fallback: if every feasible craft is committed, nothing here can be saved
+     and a recommendation would only walk the agent into the refusal. */
+  const recommendedId = feasible.find((e) => !busyIds.includes(e.spacecraftId))?.spacecraftId;
 
   return (
     <section className={styles.section} aria-labelledby="craft-heading">
@@ -50,11 +62,12 @@ export function CraftList({ evaluations, fleet, selectedId, onSelect }: Props) {
       )}
 
       <ul className={styles.list}>
-        {feasible.map((evaluation, index) => {
+        {feasible.map((evaluation) => {
           const craft = byId.get(evaluation.spacecraftId);
           if (!craft) return null;
 
           const chosen = selectedId === craft.id;
+          const busy = busyIds.includes(craft.id);
 
           return (
             <li key={craft.id}>
@@ -66,8 +79,18 @@ export function CraftList({ evaluations, fleet, selectedId, onSelect }: Props) {
               >
                 <span className={styles.rowName}>{craft.name}</span>
                 {/* The evaluator returns feasible craft with the most range to
-                    spare first, so the recommendation is simply the first one. */}
-                {index === 0 && <span className={styles.badge}>Recommended</span>}
+                    spare first, so the recommendation is the first one that can
+                    actually be saved — recommending a craft whose save button is
+                    dead would send the agent straight into the refusal. */}
+                {craft.id === recommendedId && <span className={styles.badge}>Recommended</span>}
+                {busy && (
+                  <span
+                    className={styles.busy}
+                    title="Already committed to another saved mission over these dates. Move the departure date to free it."
+                  >
+                    already booked
+                  </span>
+                )}
                 <span className={styles.chip}>{craft.capacity} seats</span>
                 <span className={styles.chip}>{percent(evaluation.rangeUtilisation)} used</span>
                 <span className={styles.chip}>{years(evaluation.durationYears)}</span>

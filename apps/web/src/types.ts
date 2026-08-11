@@ -58,6 +58,16 @@ export interface Evaluation {
 export interface EvaluationResponse {
   anyFeasible: boolean;
   evaluations: Evaluation[];
+  /**
+   * Craft already committed to another saved mission over this window.
+   *
+   * Kept apart from `feasible` on purpose: feasibility is physics and never
+   * changes for the same inputs, whereas being booked is scheduling and depends on
+   * what is stored. Both block a save; the server refuses this one with a 409.
+   * Optional so an older response, or a test fixture written before this existed,
+   * simply reports nothing busy.
+   */
+  busySpacecraftIds?: string[];
 }
 
 export interface CatalogResponse {

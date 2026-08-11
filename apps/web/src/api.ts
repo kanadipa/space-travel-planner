@@ -39,7 +39,13 @@ export const api = {
   planets: () => request<CatalogResponse>('/planets'),
   spacecraft: () => request<Spacecraft[]>('/spacecraft'),
 
-  evaluate: (body: { passengerCount: number; destinationIds: string[]; departureDate: string }) =>
+  evaluate: (body: {
+    passengerCount: number;
+    destinationIds: string[];
+    departureDate: string;
+    /** Omitted when planning a new mission, so a saved plan never clashes with itself. */
+    editingMissionId?: string;
+  }) =>
     request<EvaluationResponse>('/evaluations', {
       method: 'POST',
       body: JSON.stringify(body),

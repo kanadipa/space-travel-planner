@@ -3,5 +3,6 @@ export * from './constants';
 export * from './geometry';
 export * from './route';
 export * from './destinations';
+export * from './availability';
 export * from './consumption';
 export * from './feasibility';

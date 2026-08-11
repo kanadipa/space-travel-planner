@@ -48,6 +48,16 @@ export class EvaluateDto {
   @Type(() => Date)
   @IsDate({ message: 'Departure date is not a valid date.' })
   departureDate!: Date;
+
+  /**
+   * The saved plan being amended, when there is one.
+   *
+   * Sent so the availability check can leave that mission out: a plan must not be
+   * reported as clashing with itself. Absent when planning a new mission.
+   */
+  @IsOptional()
+  @IsString()
+  editingMissionId?: string;
 }
 
 /** Every field optional; the service merges a patch onto the stored mission. */

@@ -26,10 +26,13 @@ export function App() {
   const [craftId, setCraftId] = useState<string | null>(null);
 
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
+  const [busyIds, setBusyIds] = useState<string[]>([]);
   const [evaluating, setEvaluating] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saveFailures, setSaveFailures] = useState<Failure[] | null>(null);
+  /** The server's 409 message. Separate from `saveFailures`, whose codes are physics. */
+  const [saveConflict, setSaveConflict] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([api.planets(), api.spacecraft(), api.listMissions()])
@@ -49,6 +52,7 @@ export function App() {
   useEffect(() => {
     if (selectedIds.length === 0) {
       setEvaluations([]);
+      setBusyIds([]);
       return;
     }
 
@@ -57,12 +61,23 @@ export function App() {
 
     const timer = setTimeout(() => {
       api
-        .evaluate({ passengerCount, destinationIds: selectedIds, departureDate })
+        .evaluate({
+          passengerCount,
+          destinationIds: selectedIds,
+          departureDate,
+          // Sent while amending, so the plan being edited is not reported as
+          // clashing with itself.
+          ...(editingId ? { editingMissionId: editingId } : {}),
+        })
         .then((response) => {
-          if (!cancelled) setEvaluations(response.evaluations);
+          if (cancelled) return;
+          setEvaluations(response.evaluations);
+          setBusyIds(response.busySpacecraftIds ?? []);
         })
         .catch(() => {
-          if (!cancelled) setEvaluations([]);
+          if (cancelled) return;
+          setEvaluations([]);
+          setBusyIds([]);
         })
         .finally(() => {
           if (!cancelled) setEvaluating(false);
@@ -73,12 +88,16 @@ export function App() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [selectedIds, passengerCount, departureDate]);
+  }, [selectedIds, passengerCount, departureDate, editingId]);
 
   // Derived, not stored: a craft that stops being feasible when the route changes
   // stops being the selection, with no effect needed to clear it.
   const selected = evaluations.find((e) => e.spacecraftId === craftId && e.feasible) ?? null;
   const preview = selected ?? evaluations.find((e) => e.feasible) ?? evaluations[0] ?? null;
+
+  // Blocks the save. Derived like `selected`, so changing the date or the route
+  // frees the craft on the next evaluation with nothing to reset.
+  const selectedIsBusy = selected !== null && busyIds.includes(selected.spacecraftId);
 
   const editing = missions.find((mission) => mission.id === editingId) ?? null;
   const unsaved =
@@ -103,6 +122,7 @@ export function App() {
     setPassengerCount(4);
     setDepartureDate(defaultDepartureDate());
     setSaveFailures(null);
+    setSaveConflict(null);
   }
 
   async function save() {
@@ -117,6 +137,7 @@ export function App() {
 
     try {
       setSaveFailures(null);
+      setSaveConflict(null);
       const mission = editingId
         ? await api.updateMission(editingId, payload)
         : await api.createMission(payload);
@@ -127,6 +148,12 @@ export function App() {
       if (error instanceof ApiError && error.status === 422) {
         const body = error.body as { failures?: Failure[] };
         setSaveFailures(body.failures ?? []);
+      } else if (error instanceof ApiError && error.status === 409) {
+        // The craft was taken between the last evaluation and this save, so the
+        // warning never had a chance to appear. Re-evaluating would race the
+        // debounce; the server's message already names the mission in the way.
+        const body = error.body as { message?: string };
+        setSaveConflict(body.message ?? 'That spacecraft is already committed over these dates.');
       } else {
         setSaveFailures([
           { code: 'OUT_OF_RANGE', actionable: false, message: 'Could not save.', detail: {} },
@@ -142,6 +169,7 @@ export function App() {
     setDepartureDate(isoDate(mission.departureDate));
     setCraftId(mission.spacecraftId);
     setSaveFailures(null);
+    setSaveConflict(null);
   }
 
   async function remove(id: string) {
@@ -241,6 +269,7 @@ export function App() {
           <CraftList
             evaluations={evaluations}
             fleet={fleet}
+            busyIds={busyIds}
             selectedId={selected?.spacecraftId ?? null}
             onSelect={setCraftId}
           />
@@ -252,6 +281,17 @@ export function App() {
                   ? 'The server revalidates the whole mission before it is stored.'
                   : 'Choose a feasible spacecraft to save this mission.'}
               </p>
+
+              {/* Says why the button is dead. The server refuses the same case with
+                  a 409, so this is the reason shown early, not the rule itself. */}
+              {selectedIsBusy && (
+                <p className={styles.warning}>
+                  This spacecraft is already committed to another mission over these dates. Choose
+                  another craft, or move the departure date.
+                </p>
+              )}
+
+              {saveConflict && <p className={styles.warning}>{saveConflict}</p>}
 
               {saveFailures && saveFailures.length > 0 && (
                 <ul className={styles.saveErrors}>
@@ -266,7 +306,7 @@ export function App() {
               type="button"
               className={styles.primary}
               onClick={save}
-              disabled={!selected || evaluating}
+              disabled={!selected || selectedIsBusy || evaluating}
             >
               {editing ? 'Update mission' : 'Save mission'}
             </button>

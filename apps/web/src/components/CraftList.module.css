@@ -115,6 +115,18 @@
   padding: 1px 9px;
 }
 
+/* Advisory, so it is tinted rather than outlined: an outline would read as the
+   same kind of hard exclusion the ruled-out chips carry. */
+.busy {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--warn-ink);
+  background: var(--warn);
+  border-radius: 999px;
+  padding: 1px 9px;
+}
+
 /* Ruled out: still readable, never competing with the answer. */
 .rejected {
   display: block;
