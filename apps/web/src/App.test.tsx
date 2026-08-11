@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App';
-import { installFakeApi, nothingFeasible, savedMission } from './testing/fake-api';
+import { feasibleButBusy, installFakeApi, nothingFeasible, savedMission } from './testing/fake-api';
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -114,6 +114,64 @@ describe('planner screen', () => {
     await user.click(screen.getByRole('button', { name: /Serenity XL/ }));
 
     expect(screen.getByRole('button', { name: /Save mission/i })).toBeEnabled();
+  });
+
+  describe('a craft already committed elsewhere', () => {
+    it('cannot be saved, and says why', async () => {
+      const user = userEvent.setup();
+      installFakeApi({ evaluation: feasibleButBusy });
+      render(<App />);
+
+      await chooseMars(user);
+      await user.click(screen.getByRole('button', { name: /Serenity XL/ }));
+
+      expect(screen.getByRole('button', { name: /Save mission/i })).toBeDisabled();
+      expect(screen.getByText(/already committed to another mission/i)).toBeInTheDocument();
+    });
+
+    it('is marked in the fleet list rather than hidden from it', async () => {
+      const user = userEvent.setup();
+      installFakeApi({ evaluation: feasibleButBusy });
+      render(<App />);
+
+      await chooseMars(user);
+
+      expect(screen.getByRole('button', { name: /Serenity XL/ })).toBeInTheDocument();
+      expect(screen.getByText(/already booked/i)).toBeInTheDocument();
+    });
+
+    /* Recommending a craft that cannot be saved would walk the agent into the
+       refusal, so the badge moves on. Here nothing else is feasible, so it goes. */
+    it('is not the recommendation', async () => {
+      const user = userEvent.setup();
+      installFakeApi({ evaluation: feasibleButBusy });
+      render(<App />);
+
+      await chooseMars(user);
+
+      expect(screen.queryByText(/Recommended/)).not.toBeInTheDocument();
+    });
+
+    /* The craft was taken between the evaluation and the save, so the warning
+       never appeared and the server is the only thing standing in the way. */
+    it('surfaces the 409 when the clash appears only at save time', async () => {
+      const user = userEvent.setup();
+      installFakeApi({
+        createRejects: {
+          status: 409,
+          body: { message: 'Serenity XL is already committed to 8WDKQ until 2041-08-05.' },
+        },
+      });
+      render(<App />);
+
+      await chooseMars(user);
+      await user.click(screen.getByRole('button', { name: /Serenity XL/ }));
+      await user.click(screen.getByRole('button', { name: /Save mission/i }));
+
+      await waitFor(() =>
+        expect(screen.getByText(/already committed to 8WDKQ/)).toBeInTheDocument(),
+      );
+    });
   });
 
   /**

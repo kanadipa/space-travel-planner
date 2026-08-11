@@ -14,7 +14,18 @@ export async function createTestApp(): Promise<INestApplication> {
   const app = configureApp(moduleRef.createNestApplication());
   await app.init();
 
-  await app.get(PrismaService).mission.deleteMany();
+  await clearMissions(app);
 
   return app;
+}
+
+/**
+ * Empties the mission table.
+ *
+ * Needed per-test, not just per-file, now that saved missions occupy their craft:
+ * two tests saving the same craft over the same dates are no longer independent,
+ * and the second would be refused by a booking the first left behind.
+ */
+export async function clearMissions(app: INestApplication): Promise<void> {
+  await app.get(PrismaService).mission.deleteMany();
 }

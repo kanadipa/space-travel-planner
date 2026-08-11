@@ -1,6 +1,6 @@
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { createTestApp } from '../testing/test-app';
+import { clearMissions, createTestApp } from '../testing/test-app';
 
 const FLYABLE = {
   spacecraftId: 'serenity-xl',
@@ -14,6 +14,12 @@ describe('missions', () => {
 
   beforeAll(async () => {
     app = await createTestApp();
+  });
+
+  /* Every test saves the same craft over the same dates, which the availability
+     rule now treats as a clash. A clean calendar keeps them independent. */
+  beforeEach(async () => {
+    await clearMissions(app);
   });
 
   afterAll(async () => {
@@ -156,6 +162,90 @@ describe('missions', () => {
 
       const after = await server().get('/api/missions').expect(200);
       expect(after.body).toHaveLength(before.body.length);
+    });
+  });
+
+  describe('409 — the craft is already committed', () => {
+    it('refuses a second mission on a craft over overlapping dates', async () => {
+      await create();
+
+      const response = await server().post('/api/missions').send(FLYABLE).expect(409);
+
+      expect(response.body.message).toContain('Serenity XL');
+      expect(response.body.conflicts).toHaveLength(1);
+    });
+
+    it('names the mission in the way, so the agent can go and look at it', async () => {
+      const first = await create({ name: 'Honeymoon' });
+
+      const response = await server().post('/api/missions').send(FLYABLE).expect(409);
+
+      expect(response.body.message).toContain(first.reference);
+      expect(response.body.conflicts[0]).toMatchObject({
+        missionId: first.id,
+        reference: first.reference,
+        name: 'Honeymoon',
+      });
+    });
+
+    it('does not persist the mission it refused', async () => {
+      await create();
+
+      await server().post('/api/missions').send(FLYABLE).expect(409);
+
+      const all = await server().get('/api/missions').expect(200);
+      expect(all.body).toHaveLength(1);
+    });
+
+    it('allows the same craft once the first mission is over', async () => {
+      const first = await create();
+
+      /* The craft is free the instant it lands: no turnaround is modelled. */
+      await server()
+        .post('/api/missions')
+        .send({ ...FLYABLE, departureDate: first.arrivalDate })
+        .expect(201);
+    });
+
+    it('allows a different craft over the same dates', async () => {
+      await create();
+
+      await server()
+        .post('/api/missions')
+        .send({ ...FLYABLE, spacecraftId: 'galactica-scout', passengerCount: 3 })
+        .expect(201);
+    });
+
+    /* Physics first: a mission that cannot be flown is 422 whether or not the
+       craft is also busy, because the payload is the thing to fix. */
+    it('reports infeasibility rather than the clash when both apply', async () => {
+      await create();
+
+      await server()
+        .post('/api/missions')
+        .send({ ...FLYABLE, passengerCount: 999 })
+        .expect(422);
+    });
+
+    it('lets a saved mission be amended without clashing with itself', async () => {
+      const mission = await create();
+
+      await server()
+        .patch(`/api/missions/${mission.id}`)
+        .send({ name: 'Renamed' })
+        .expect(200);
+    });
+
+    it('refuses an amendment that moves a mission onto a booked window', async () => {
+      const first = await create();
+      const second = await create({ departureDate: first.arrivalDate });
+
+      const response = await server()
+        .patch(`/api/missions/${second.id}`)
+        .send({ departureDate: FLYABLE.departureDate })
+        .expect(409);
+
+      expect(response.body.conflicts[0]).toMatchObject({ missionId: first.id });
     });
   });
 

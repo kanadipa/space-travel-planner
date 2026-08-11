@@ -55,6 +55,24 @@ test('the saved mission survives a full page reload', async ({ page }) => {
   await expect(saved(page).getByText(reference)).toBeVisible();
 });
 
+/**
+ * The whole rule end to end: the booking is in Postgres, the evaluation reads it
+ * back, and the button the agent would press is dead.
+ */
+test('will not double-book a craft that is already committed', async ({ page }) => {
+  await planAndSave(page, 'Mars');
+
+  await page.getByRole('button', { name: 'New mission' }).click();
+  await page.getByRole('button', { name: /^Mars/ }).click();
+  await expect(page.getByText(/can fly this route/)).toBeVisible();
+
+  await expect(fleet(page).getByText(/already booked/)).toBeVisible();
+
+  await fleet(page).getByRole('button', { name: /Serenity XL/ }).click();
+  await expect(page.getByRole('button', { name: 'Save mission' })).toBeDisabled();
+  await expect(page.getByText(/already committed to another mission/i)).toBeVisible();
+});
+
 test('loads a saved mission back into the planner', async ({ page }) => {
   const reference = await planAndSave(page, 'Jupiter');
   await page.reload();

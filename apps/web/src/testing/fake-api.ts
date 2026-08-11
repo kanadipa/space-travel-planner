@@ -125,6 +125,12 @@ export const mixedEvaluation: EvaluationResponse = {
   ],
 };
 
+/** The one feasible craft is committed elsewhere over this window. */
+export const feasibleButBusy: EvaluationResponse = {
+  ...mixedEvaluation,
+  busySpacecraftIds: ['serenity-xl'],
+};
+
 export const nothingFeasible: EvaluationResponse = {
   anyFeasible: false,
   evaluations: mixedEvaluation.evaluations.map((e) => ({

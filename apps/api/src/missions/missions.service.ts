@@ -1,7 +1,13 @@
-import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { CatalogService } from '../catalog/catalog.service';
-import { addYears, type Evaluation, type Spacecraft } from '../domain';
+import { addYears, conflictsFor, type Evaluation, type Spacecraft } from '../domain';
+import { BookingsService } from '../planning/bookings.service';
 import { PlanningService } from '../planning/planning.service';
 import { PrismaService } from '../prisma/prisma.service';
 import type { CreateMissionDto, UpdateMissionDto } from './dto/mission-input.dto';
@@ -23,6 +29,7 @@ export class MissionsService {
     private readonly prisma: PrismaService,
     private readonly planning: PlanningService,
     private readonly catalog: CatalogService,
+    private readonly bookings: BookingsService,
   ) {}
 
   list() {
@@ -43,6 +50,7 @@ export class MissionsService {
 
   async create(request: CreateMissionDto) {
     const { evaluation, craft } = this.validate(request);
+    await this.assertAvailable(request, evaluation);
 
     return this.prisma.mission.create({
       data: {
@@ -64,6 +72,7 @@ export class MissionsService {
     };
 
     const { evaluation, craft } = this.validate(merged);
+    await this.assertAvailable(merged, evaluation, id);
 
     return this.prisma.mission.update({
       where: { id },
@@ -93,6 +102,54 @@ export class MissionsService {
     }
 
     return { evaluation, craft };
+  }
+
+  /**
+   * A craft cannot be in two places at once, so an occupied one is refused.
+   *
+   * 409 and not 422: the mission is physically flyable, it is the fleet calendar
+   * that says no, and the fix is another craft or another date rather than a
+   * different payload. Kept out of `validate` for the same reason it is kept out of
+   * the domain evaluator — feasibility is physics and answers the same way every
+   * time, whereas this answer depends on what is stored and changes as missions are
+   * saved and deleted.
+   *
+   * Enforced here rather than only in the browser because the UI's warning is
+   * advice from a previous evaluation: the client can be stale, or absent
+   * altogether. The window is recomputed from the evaluation that was just run, so
+   * it is the same arithmetic that is about to be written to `arrivalDate`.
+   */
+  private async assertAvailable(
+    input: MissionInput,
+    evaluation: Evaluation,
+    ignoreMissionId?: string,
+  ): Promise<void> {
+    const departure = new Date(input.departureDate);
+    const clashes = conflictsFor(
+      input.spacecraftId,
+      { departure, arrival: addYears(departure, evaluation.durationYears) },
+      await this.bookings.all(),
+      ignoreMissionId,
+    );
+
+    if (clashes.length === 0) return;
+
+    const craft = this.catalog.spacecraftById(input.spacecraftId);
+    const first = clashes[0]!;
+
+    throw new ConflictException({
+      message:
+        `${craft.name} is already committed to ${first.reference} until ` +
+        `${first.arrival.toISOString().slice(0, 10)}. Choose another craft or another ` +
+        `departure date.`,
+      conflicts: clashes.map((clash) => ({
+        missionId: clash.missionId,
+        reference: clash.reference,
+        name: clash.name,
+        departureDate: clash.departure.toISOString(),
+        arrivalDate: clash.arrival.toISOString(),
+      })),
+    });
   }
 
   private derive(input: MissionInput, evaluation: Evaluation, craft: Spacecraft) {
