@@ -113,16 +113,34 @@ no outcome.
 capacity, that craft is excluded rather than the party divided. Splitting a
 booking is a product decision the brief does not authorise.
 
+**A craft cannot be double-booked.** Scheduling is not in the brief, but one craft
+cannot be in two places at once, so a craft already committed to another saved
+mission over the same window is refused: the fleet list marks it "already booked",
+the save button goes dead with the reason beside it, and the API answers 409 if the
+request is made anyway. Allowing it would store a plan that could never be flown.
+
+It is 409 and not 422 because the mission is physically flyable — the fleet
+calendar is what says no, and the fix is another craft or another date rather than a
+different payload. That split runs all the way down: feasibility lives in the
+domain layer and answers the same way every time, while availability is checked in
+`MissionsService` because it answers from the database. When both apply, the 422
+wins; the payload is the thing to fix first.
+
+Availability is derived from the saved missions on every evaluation and every save
+rather than stored on the craft, so there is no flag to fall out of step when a
+mission is edited or deleted, and the mission being amended is excluded from its own
+check. Turnaround time is not modelled, so a craft landing at the instant another
+mission departs is treated as free.
+
 ## Known simplifications
 
 Deliberate fidelity limits, recorded because they are visible on inspection.
 
-**A craft can be booked for overlapping missions.** Saving a plan does not check
-whether that spacecraft is already committed on those dates, so two saved missions
-can both claim the same craft in the same window. The brief asks for plans to be
-saved and reloaded, not for a fleet schedule, and enforcing it properly means
-deciding what a conflict blocks — the save, or only the recommendation — and how an
-agent resolves one. Recorded rather than half-built.
+**Nothing holds a craft between evaluating and saving.** Two agents planning the
+same craft at once will both be offered it, and the second save is refused rather
+than queued. A reservation with a timeout is a product decision the brief does not
+authorise, and the refusal is correct either way — it is only later than it could
+be.
 
 **The trajectory model is one-dimensional.** In reality a craft that detours around
 one body leaves the axis, and the return leg could pass clear of bodies it had to
