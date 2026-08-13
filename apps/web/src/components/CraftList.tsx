@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Evaluation, Failure, Spacecraft } from '../types';
 import { distance, percent, temperature, years } from '../format';
 import styles from './CraftList.module.css';
@@ -38,9 +39,15 @@ function reasonFor(failure: Failure): string {
 }
 
 export function CraftList({ evaluations, fleet, busyIds, selectedId, onSelect }: Props) {
+  /** Null until the agent says otherwise, so the default can follow the answer. */
+  const [openedByHand, setOpenedByHand] = useState<boolean | null>(null);
+
   const byId = new Map(fleet.map((craft) => [craft.id, craft]));
   const feasible = evaluations.filter((evaluation) => evaluation.feasible);
   const ruledOut = evaluations.filter((evaluation) => !evaluation.feasible);
+  /* Open when there is no answer to show: the reasons are the only thing left to
+     read, and folding them away would hide the whole screen's content. */
+  const showRuledOut = openedByHand ?? feasible.length === 0;
   /* No fallback: if every feasible craft is committed, nothing here can be saved
      and a recommendation would only walk the agent into the refusal. */
   const recommendedId = feasible.find((e) => !busyIds.includes(e.spacecraftId))?.spacecraftId;
@@ -77,71 +84,90 @@ export function CraftList({ evaluations, fleet, busyIds, selectedId, onSelect }:
                 onClick={() => onSelect(craft.id)}
                 aria-pressed={chosen}
               >
-                <span className={styles.rowName}>{craft.name}</span>
-                {/* The evaluator returns feasible craft with the most range to
-                    spare first, so the recommendation is the first one that can
-                    actually be saved — recommending a craft whose save button is
-                    dead would send the agent straight into the refusal. */}
-                {craft.id === recommendedId && <span className={styles.badge}>Recommended</span>}
-                {busy && (
-                  <span
-                    className={styles.busy}
-                    title="Already committed to another saved mission over these dates. Move the departure date to free it."
-                  >
-                    already booked
-                  </span>
-                )}
-                <span className={styles.chip}>{craft.capacity} seats</span>
-                <span className={styles.chip}>{percent(evaluation.rangeUtilisation)} used</span>
-                <span className={styles.chip}>{years(evaluation.durationYears)}</span>
+                <span className={styles.rowMain}>
+                  <span className={styles.rowName}>{craft.name}</span>
+                  {/* Says the state in words, not only in tint. */}
+                  {chosen && <span className={styles.chosen}>chosen</span>}
+                  {/* The evaluator returns feasible craft with the most range to
+                      spare first, so the recommendation is the first one that can
+                      actually be saved — recommending a craft whose save button is
+                      dead would send the agent straight into the refusal. */}
+                  {craft.id === recommendedId && <span className={styles.badge}>Recommended</span>}
+                  {busy && (
+                    <span
+                      className={styles.busy}
+                      title="Already committed to another saved mission over these dates. Move the departure date to free it."
+                    >
+                      already booked
+                    </span>
+                  )}
+                </span>
+                <span className={styles.specs}>
+                  {craft.capacity} seats · {percent(evaluation.rangeUtilisation)} used ·{' '}
+                  {years(evaluation.durationYears)}
+                </span>
               </button>
             </li>
           );
         })}
       </ul>
 
+      {/* Folded away rather than dropped: the reasons matter when nothing fits,
+          and are noise when something does. */}
       {ruledOut.length > 0 && (
-        <>
-          <h3 className={styles.divider}>
-            <span>ruled out</span>
-          </h3>
-          <ul className={styles.list}>
-            {ruledOut.map((evaluation) => {
-              const craft = byId.get(evaluation.spacecraftId);
-              if (!craft) return null;
+        <div className={styles.ruledOut}>
+          <button
+            type="button"
+            className={styles.disclosure}
+            onClick={() => setOpenedByHand(!showRuledOut)}
+            aria-expanded={showRuledOut}
+          >
+            {showRuledOut
+              ? `Hide the ${ruledOut.length} ruled out ↑`
+              : `Why ${ruledOut.length} are ruled out ↓`}
+          </button>
 
-              return (
-                <li key={craft.id} className={styles.rejected}>
-                  <span className={styles.rejectedTop}>
-                    <span className={styles.rejectedName}>{craft.name}</span>
+          {showRuledOut && (
+            <ul className={styles.list}>
+              {ruledOut.map((evaluation) => {
+                const craft = byId.get(evaluation.spacecraftId);
+                if (!craft) return null;
 
-                    {evaluation.failures.map((failure, index) => (
-                      <span
-                        key={`${failure.code}-${index}`}
-                        className={failure.actionable ? styles.stampWarn : styles.stampBad}
-                        tabIndex={0}
-                      >
-                        {reasonFor(failure)}
-                        <i className={styles.info} aria-hidden="true">
-                          i
-                        </i>
-                        <span className={styles.tip} role="tooltip">
-                          {failure.message}
-                        </span>
+                return (
+                  <li key={craft.id} className={styles.rejected}>
+                    <span className={styles.rejectedTop}>
+                      <span className={styles.rejectedName}>{craft.name}</span>
+
+                      <span className={styles.reasons}>
+                        {evaluation.failures.map((failure, index) => (
+                          <span
+                            key={`${failure.code}-${index}`}
+                            className={failure.actionable ? styles.stampWarn : styles.stampBad}
+                            tabIndex={0}
+                          >
+                            {reasonFor(failure)}
+                            <i className={styles.info} aria-hidden="true">
+                              i
+                            </i>
+                            <span className={styles.tip} role="tooltip">
+                              {failure.message}
+                            </span>
+                          </span>
+                        ))}
                       </span>
-                    ))}
-                  </span>
+                    </span>
 
-                  <span className={styles.rejectedSpecs}>
-                    {craft.size} · {craft.capacity} seats · {distance(craft.rangeKm)} range ·{' '}
-                    {temperature(craft.operationalTemperatureCMin)} to{' '}
-                    {temperature(craft.operationalTemperatureCMax)}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        </>
+                    <span className={styles.rejectedSpecs}>
+                      {craft.size} · {craft.capacity} seats · {distance(craft.rangeKm)} range ·{' '}
+                      {temperature(craft.operationalTemperatureCMin)} to{' '}
+                      {temperature(craft.operationalTemperatureCMax)}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
       )}
     </section>
   );

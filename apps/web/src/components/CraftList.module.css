@@ -1,216 +1,179 @@
 .section {
-  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 12px;
-  gap: 12px;
+  gap: 16px;
+  padding-bottom: 14px;
 }
 
 .header h2 {
-  font-size: 20px;
+  font-size: 23px;
+  letter-spacing: -0.01em;
 }
 
 .count {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--text-dim);
 }
 
 .empty {
-  margin: 0 0 14px;
-  padding: 13px 15px;
-  background: var(--surface);
-  border: var(--border) solid var(--ink);
-  border-radius: var(--radius);
-  box-shadow: 3px 3px 0 var(--ink);
-  color: var(--text);
-  font-size: 14px;
-}
-
-/* Section rules. A hairline would be out of key with the outlines. */
-.divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 20px 0 10px;
-  font-size: 12px;
-  font-weight: 600;
+  margin: 0;
+  padding: 20px 0;
+  border-top: 1px solid var(--line);
+  font-size: 16px;
   color: var(--text-dim);
-}
-
-.divider::after {
-  content: '';
-  flex: 1;
-  height: 2px;
-  background: var(--surface-sunk);
-  border-radius: 2px;
 }
 
 .list {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  gap: 8px;
 }
 
+/* Rows are separated by a single rule, not boxed. The row itself is the button,
+   so the whole width is the target. */
+/* A button is fit-content even as a flex container, so the width is explicit.
+   It carries its own padding either side and pulls back by the same amount, so
+   the tinted row is wider than the rule without shifting off it. */
 .row {
-  width: 100%;
+  width: calc(100% + 28px);
   display: flex;
-  align-items: center;
-  gap: 8px;
   flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 20px;
+  padding: 20px 14px;
+  margin: 0 -14px;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: var(--radius);
   text-align: left;
-  background: var(--surface);
-  border: var(--border) solid var(--ink);
-  border-radius: 999px;
-  padding: 8px 16px;
-  color: inherit;
 }
 
 .row:hover {
-  background: var(--surface-soft);
+  background: var(--surface-hover);
 }
 
 .rowOn {
-  background: var(--accent);
+  background: var(--accent-halo);
+}
+
+.rowMain {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .rowName {
-  flex: 1;
-  font-size: 17px;
+  font-size: 19px;
 }
 
-.chip {
-  font-family: var(--mono);
-  font-size: 12px;
-  color: var(--text-dim);
-  background: var(--surface-soft);
-  border-radius: 8px;
-  padding: 2px 9px;
+.rowOn .rowName {
+  font-weight: 600;
 }
 
-.rowOn .chip {
-  background: var(--surface);
-  color: var(--text);
-}
-
-/* Marks the recommendation without colouring the row: colour is reserved for
-   the craft the agent has actually chosen. */
-.badge {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text);
-  background: var(--surface);
-  border: 2px solid var(--ink);
-  border-radius: 999px;
-  padding: 1px 9px;
-}
-
-/* Advisory, so it is tinted rather than outlined: an outline would read as the
-   same kind of hard exclusion the ruled-out chips carry. */
+.chosen,
+.badge,
 .busy {
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 13px;
+}
+
+.chosen {
+  color: var(--accent-deep);
+}
+
+/* Marks the recommendation without tinting the row: the tint is reserved for the
+   craft the agent has actually chosen. */
+.badge {
+  color: var(--accent);
+}
+
+/* Advisory: the craft could fly this route on another date. */
+.busy {
   color: var(--warn-ink);
   background: var(--warn);
   border-radius: 999px;
-  padding: 1px 9px;
+  padding: 3px 11px;
+  cursor: help;
 }
 
-/* Ruled out: still readable, never competing with the answer. */
+.specs {
+  font-size: 14px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.ruledOut {
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.disclosure {
+  align-self: flex-start;
+  background: none;
+  border: 0;
+  padding: 10px 0;
+  min-height: 44px;
+  font-size: 15px;
+  color: var(--text-dim);
+  text-align: left;
+}
+
+.disclosure:hover {
+  color: var(--accent);
+}
+
 .rejected {
-  display: block;
-  background: transparent;
-  border: var(--border) dashed var(--ink-soft);
-  border-radius: var(--radius);
-  padding: 10px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 0;
 }
 
 .rejectedTop {
   display: flex;
-  align-items: center;
-  gap: 8px;
   flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 20px;
 }
 
 .rejectedName {
-  flex: 1;
   font-size: 17px;
-  color: var(--text-faint);
+  color: var(--text-dim);
+}
+
+.reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
 }
 
 /* Names the reason and keeps the row scannable; the full sentence is one hover
-   or one tab-stop away, rather than printed on every rejected craft. */
+   or one tab-stop away, rather than printed on every ruled-out craft. */
 .stampWarn,
 .stampBad {
   position: relative;
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 12px;
-  font-weight: 800;
-  padding: 2px 5px 2px 11px;
+  font-size: 13px;
+  padding: 5px 11px;
   border-radius: 999px;
-  border: var(--border) solid var(--ink);
   white-space: nowrap;
   cursor: help;
-}
-
-.tip {
-  position: absolute;
-  bottom: calc(100% + 9px);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 2;
-  width: max-content;
-  max-width: 250px;
-  padding: 7px 11px;
-  background: var(--surface);
-  border: var(--border) solid var(--ink);
-  border-radius: var(--radius);
-  box-shadow: 3px 3px 0 var(--ink);
-  color: var(--text);
-  font-size: 12.5px;
-  font-weight: 600;
-  white-space: normal;
-  text-align: left;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 90ms ease;
-}
-
-/* The pointer that ties the box to its chip. */
-.tip::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  margin-left: -6px;
-  border: 6px solid transparent;
-  border-top-color: var(--ink);
-}
-
-.stampWarn:hover .tip,
-.stampBad:hover .tip,
-.stampWarn:focus .tip,
-.stampBad:focus .tip {
-  opacity: 1;
-  visibility: visible;
-}
-
-.info {
-  width: 15px;
-  height: 15px;
-  border: 2px solid currentColor;
-  border-radius: 50%;
-  font-size: 10px;
-  font-style: normal;
-  line-height: 11px;
-  text-align: center;
 }
 
 .stampWarn {
@@ -223,11 +186,58 @@
   color: var(--bad-ink);
 }
 
-.rejectedSpecs {
-  display: block;
-  font-family: var(--mono);
-  font-size: 11.5px;
-  color: var(--text-faint);
-  margin-top: 5px;
+.info {
+  width: 15px;
+  height: 15px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 10px;
+  font-style: normal;
+  line-height: 13px;
+  text-align: center;
+  opacity: 0.75;
 }
 
+.tip {
+  position: absolute;
+  bottom: calc(100% + 9px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  width: max-content;
+  max-width: 250px;
+  padding: 9px 13px;
+  background: var(--text);
+  border-radius: var(--radius);
+  color: oklch(0.97 0.02 88);
+  font-size: 13px;
+  white-space: normal;
+  text-align: left;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 120ms ease;
+}
+
+/* The pointer that ties the box to its chip. */
+.tip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -6px;
+  border: 6px solid transparent;
+  border-top-color: var(--text);
+}
+
+.stampWarn:hover .tip,
+.stampBad:hover .tip,
+.stampWarn:focus .tip,
+.stampBad:focus .tip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.rejectedSpecs {
+  font-size: 13px;
+  color: var(--text-faint);
+}

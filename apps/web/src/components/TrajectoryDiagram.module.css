@@ -1,90 +1,223 @@
-/* The diagram sits directly on the page. Framing it as well as the planets
-   would put an outline inside an outline. */
 .figure {
-  margin: 0 0 18px;
-  padding: 4px 0 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
 }
 
-.svg {
-  width: 100%;
-  height: auto;
-  display: block;
+/* The ring is the one size everything else is placed from: the axis sits on its
+   centre line and the arcs spring off that. Change --ring and the rest follows. */
+.chart {
+  --ring: 48px;
+  --arc: 34px;
+  /* Chart padding plus the button's own top padding, above the ring. */
+  --above: 18px;
+  --axis-y: calc(var(--above) + var(--ring) / 2);
+
+  position: relative;
+  padding-top: 10px;
+  /* Below this the 48px rings cannot fit eight abreast, so the row scrolls
+     rather than pushing the page sideways. */
+  min-width: 360px;
 }
 
+/* Keeps a cramped row inside the page instead of widening the document. */
+.scroller {
+  overflow-x: auto;
+}
+
+/* The full span of the system, behind everything. */
 .axis {
-  stroke: var(--surface-sunk);
-  stroke-width: 3;
-  stroke-linecap: round;
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: var(--axis-y);
+  height: 1px;
+  background: var(--line);
 }
 
+/* The stretch actually flown, from the first body on the route to the last. */
 .route {
-  stroke: var(--ink);
-  stroke-width: 4.5;
-  stroke-linecap: round;
+  position: absolute;
+  top: calc(var(--axis-y) - 1px);
+  height: 3px;
+  border-radius: 3px;
+  background: var(--accent);
 }
 
-.detour {
+/* Hops over a body standing in the path. Sized in pixels rather than to the
+   viewBox, so the dashes keep their rhythm however wide the row is, with a
+   radius half again the ring's so the arc clearly clears the body. Its foot
+   lands on the axis. */
+.arc {
+  position: absolute;
+  top: calc(var(--axis-y) - var(--arc));
+  width: calc(var(--arc) * 2);
+  height: var(--arc);
+  transform: translateX(-50%);
+  overflow: visible;
   fill: none;
-  stroke: var(--ink);
-  stroke-width: 3.5;
+  stroke: var(--accent-mid);
+  stroke-width: 2.5;
   stroke-dasharray: 6 5;
   stroke-linecap: round;
 }
 
-.label,
-.labelOn,
-.tag {
-  text-anchor: middle;
-  font-family: var(--sans);
-  font-size: 11px;
-  font-weight: 700;
+/* One equal column per body, however many the catalogue returns. */
+.row {
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
 }
 
-.label {
-  fill: var(--text-faint);
+/* One column per body, whether or not it can be chosen, so the two stay in step. */
+.planet,
+.home {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 8px 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-height: 96px;
+  border-radius: var(--radius);
 }
 
-.labelOn {
-  fill: var(--text);
-  font-weight: 800;
-  font-size: 12px;
+.planet:hover {
+  background: var(--surface-hover);
 }
 
-.tag {
-  fill: var(--text-dim);
-  font-size: 10px;
+.home {
+  cursor: default;
+}
+
+/* One target size on every body, so picking Mercury is no harder than Jupiter.
+   Filled with the page colour, so the axis and the route stop at each body
+   instead of running through it. */
+.ring {
+  width: var(--ring);
+  height: var(--ring);
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px dashed transparent;
+  background: var(--bg);
+  transition: border-color 140ms ease, background 140ms ease;
+}
+
+.ringOn {
+  border-style: solid;
+  border-color: var(--accent);
+}
+
+/* Barely there, but there: every body that can be picked shows its target at rest. */
+.ringOff {
+  border-color: var(--line);
+}
+
+.ringPassed {
+  border-color: var(--accent-pale);
+}
+
+.ringHalo {
+  background: var(--accent-halo);
+}
+
+.dot {
+  border-radius: 999px;
+  flex: none;
+}
+
+.labels {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.name,
+.nameOn {
+  font-size: 14px;
+}
+
+.name {
   font-weight: 400;
+  color: var(--text-dim);
+}
+
+.nameOn {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tag {
+  font-size: 12px;
+  color: var(--text-faint);
+  min-height: 16px;
 }
 
 .caption {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
   align-items: center;
-  padding: 4px 4px 0;
-  font-size: 12px;
+  gap: 8px 22px;
+  margin: 0;
+  font-size: 13px;
   color: var(--text-faint);
 }
 
 .caption span {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
 }
 
 .keyRoute,
 .keyDetour {
-  width: 16px;
-  height: 0;
-  border-top: 3px solid var(--ink);
-  border-radius: 2px;
+  width: 22px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--accent);
 }
 
 .keyDetour {
-  border-top-style: dashed;
+  background: repeating-linear-gradient(
+    to right,
+    var(--accent-mid) 0 7px,
+    transparent 7px 12px
+  );
 }
 
 .note {
   flex: 1;
-  min-width: 240px;
+  min-width: 200px;
+}
+
+/* Eight bodies will not carry a 48px ring and a 14px name on a phone, so both
+   step down before the row has to scroll. */
+@media (max-width: 560px) {
+  .chart {
+    --ring: 40px;
+    --arc: 28px;
+    min-width: 340px;
+  }
+
+  .name,
+  .nameOn {
+    font-size: 12px;
+  }
+
+  .tag {
+    font-size: 11px;
+  }
+
+  .planet,
+  .home {
+    gap: 8px;
+    min-height: 84px;
+  }
 }

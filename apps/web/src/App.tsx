@@ -206,7 +206,13 @@ export function App() {
           <p className={styles.sub}>
             Departing {catalog.departure.name} · orbits halted, 42-year window
           </p>
+          <span className={styles.sub}>
+          Pick a planet to add or drop a stop. Bodies are evenly spaced in orbital order, not to
+          scale.
+         </span>
         </div>
+
+        
 
         {editing && (
           <div className={styles.editing}>
@@ -221,23 +227,23 @@ export function App() {
         )}
       </header>
 
-      <Controls
-        destinations={catalog.destinations}
-        excluded={catalog.excluded}
-        selectedIds={selectedIds}
-        passengerCount={passengerCount}
-        departureDate={departureDate}
-        maxCapacity={maxCapacity}
-        onToggleDestination={toggleDestination}
-        onPassengerCount={setPassengerCount}
-        onDepartureDate={setDepartureDate}
-      />
-
+      {/* The diagram leads: it is where the route is chosen, and the panel below
+          carries what is left of the mission. */}
       <TrajectoryDiagram
         bodies={bodies}
         departure={catalog.departure}
         selectedIds={selectedIds}
         legs={preview?.itinerary.legs ?? []}
+        onToggleDestination={toggleDestination}
+      />
+
+      <Controls
+        excluded={catalog.excluded}
+        passengerCount={passengerCount}
+        departureDate={departureDate}
+        maxCapacity={maxCapacity}
+        onPassengerCount={setPassengerCount}
+        onDepartureDate={setDepartureDate}
       />
 
       {selectedIds.length === 0 ? (
@@ -248,14 +254,17 @@ export function App() {
             <Metric
               label="Total distance"
               value={distance(preview?.itinerary.totalDistanceKm ?? 0)}
+              tint="var(--tint-distance)"
             />
             <Metric
               label="Consumption rate"
               value={(preview?.consumptionRate ?? 1).toFixed(3)}
               hint={`${passengerCount} aboard`}
+              tint="var(--tint-arrival)"
             />
             <Metric
               label="Duration"
+              tint="var(--tint-duration)"
               value={preview ? years(preview.durationYears) : '—'}
               hint={preview ? `arrives ${arrivalOf(departureDate, preview.durationYears)}` : ''}
             />
@@ -263,6 +272,7 @@ export function App() {
               label="Range used"
               value={preview ? percent(preview.rangeUtilisation) : '—'}
               hint={preview ? distance(preview.rangeConsumedKm) : ''}
+              tint="var(--tint-range)"
             />
           </div>
 
@@ -324,12 +334,22 @@ function arrivalOf(departure: string, durationYears: number): string {
   return longDate(new Date(start.getTime() + durationYears * 365.25 * 24 * 3_600_000));
 }
 
-function Metric({ label, value, hint }: { label: string; value: string; hint?: string }) {
+function Metric({
+  label,
+  value,
+  hint,
+  tint,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  tint: string;
+}) {
   return (
-    <div className={styles.metric}>
+    <div className={styles.metric} style={{ background: tint }}>
       <span className={styles.metricLabel}>{label}</span>
       <span className={styles.metricValue}>{value}</span>
-      {hint && <span className={styles.metricHint}>{hint}</span>}
+      <span className={styles.metricHint}>{hint}</span>
     </div>
   );
 }

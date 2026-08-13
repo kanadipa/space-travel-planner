@@ -1,34 +1,45 @@
-/* Illustrated rather than neutral: an agent shows this screen to a customer. */
+/* Warm paper, hairlines, generous radii. Nothing is outlined: separation comes
+   from a tint or a single hairline, never from a border plus a hard shadow. */
 :root {
-  --bg: #EFE9FB;
-  --surface: #ffffff;
-  --surface-soft: #F4F1FA;
-  --surface-sunk: #E3DBF5;
+  --bg: oklch(0.968 0.022 85);
+  /* Slightly deeper than the page, for a panel that groups without framing. */
+  --surface-soft: oklch(0.945 0.032 88);
+  /* Lifted above the page, for a control that should look pressable. */
+  --surface: oklch(0.995 0.012 88);
+  --surface-hover: oklch(0.95 0.032 88);
 
-  /* One dark ink for every outline, so the drawing reads as one hand. */
-  --ink: #2A2140;
-  --ink-soft: #B0A8C4;
+  --text: oklch(0.3 0.05 305);
+  --text-dim: oklch(0.5 0.045 305);
+  --text-faint: oklch(0.53 0.045 305);
 
-  --text: #2A2140;
-  --text-dim: #6E6688;
-  --text-faint: #8B84A6;
+  --accent: oklch(0.55 0.19 295);
+  --accent-deep: oklch(0.42 0.19 295);
+  /* Behind a chosen planet, so selection is a glow rather than a fill. */
+  --accent-halo: oklch(0.92 0.07 300);
+  /* The dashed states: a body passed rather than visited. */
+  --accent-mid: oklch(0.63 0.15 300);
+  --accent-pale: oklch(0.72 0.1 295);
 
-  --accent: #B9A3E3;
-  --accent-strong: #9B85D4;
-  --ok: #8FE3A8;
-  --ok-ink: #123D1E;
-  --warn: #FFD08A;
-  --warn-ink: #5C3D06;
-  --bad: #FFB39B;
-  --bad-ink: #6E2412;
+  --line: oklch(0.885 0.028 85);
+
+  --warn: oklch(0.94 0.05 75);
+  --warn-ink: oklch(0.45 0.13 62);
+  --bad: oklch(0.94 0.045 30);
+  --bad-ink: oklch(0.48 0.14 28);
+  --ok: oklch(0.62 0.16 160);
+
+  /* The four figure cards, tinted so each reads as its own quantity. */
+  --tint-distance: oklch(0.93 0.055 95);
+  --tint-duration: oklch(0.92 0.05 225);
+  --tint-arrival: oklch(0.92 0.055 40);
+  --tint-range: oklch(0.92 0.05 160);
 
   --radius: 14px;
-  --radius-lg: 18px;
-  --border: 2.5px;
+  --radius-card: 20px;
+  --radius-panel: 24px;
 
-  /* Whatever the machine already uses. Mono is reserved for figures. */
-  --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
-  --sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --display: 'Baloo 2', system-ui, cursive;
+  --sans: 'Nunito Sans', system-ui, sans-serif;
 }
 
 * {
@@ -41,21 +52,24 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--sans);
-  font-size: 15px;
-  font-weight: 500;
-  line-height: 1.5;
+  font-size: 16px;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
 
 h1,
 h2,
 h3 {
-  font-weight: 500;
+  font-family: var(--display);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
   margin: 0;
 }
 
 button {
   font: inherit;
+  color: inherit;
   cursor: pointer;
 }
 
@@ -65,19 +79,21 @@ select {
   color: inherit;
 }
 
-/* Every figure in the interface is tabular, so digits never jitter as they change. */
+/* Every figure is set in the display face, and never reflows as it changes:
+   the ones that tick get tabular digits, the rest get a floor width. */
 .num,
 output {
-  font-family: var(--mono);
+  font-family: var(--display);
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
 :focus-visible {
-  outline: 3px solid var(--ink);
-  outline-offset: 2px;
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 
 ::selection {
-  background: var(--accent);
-  color: var(--ink);
+  background: var(--accent-halo);
+  color: var(--text);
 }

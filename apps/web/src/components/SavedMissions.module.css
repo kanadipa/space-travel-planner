@@ -1,53 +1,46 @@
 .section {
-  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 12px;
+  gap: 16px;
+  padding-bottom: 14px;
 }
 
 .header h2 {
-  font-size: 20px;
+  font-size: 23px;
+  letter-spacing: -0.01em;
 }
 
 .count {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--text-dim);
 }
 
 .empty {
   margin: 0;
-  padding: 15px;
-  background: var(--surface);
-  border: var(--border) dashed var(--ink-soft);
-  border-radius: var(--radius);
-  color: var(--text-faint);
-  font-size: 13px;
+  padding: 20px 0;
+  border-top: 1px solid var(--line);
+  font-size: 16px;
+  color: var(--text-dim);
 }
 
 .list {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  gap: 8px;
 }
 
 .row {
   display: flex;
   align-items: stretch;
-  background: var(--surface);
-  border: var(--border) solid var(--ink);
-  border-radius: var(--radius);
-  box-shadow: 3px 3px 0 var(--ink);
-  overflow: hidden;
-}
-
-.active {
-  background: var(--accent);
+  gap: 8px;
+  border-top: 1px solid var(--line);
 }
 
 .main {
@@ -55,45 +48,50 @@
   display: grid;
   gap: 2px;
   text-align: left;
-  background: transparent;
-  border: none;
-  color: inherit;
-  padding: 10px 15px;
+  background: none;
+  border: 0;
+  border-radius: var(--radius);
+  padding: 18px 14px;
+  margin-left: -14px;
 }
 
 .main:hover {
-  background: var(--surface-soft);
+  background: var(--surface-hover);
 }
 
-.active .main:hover {
-  background: var(--accent-strong);
+.active .main {
+  background: var(--accent-halo);
 }
 
 .reference {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--text-dim);
-  letter-spacing: 0.08em;
+  font-size: 13px;
+  color: var(--accent-deep);
 }
 
 .name {
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 17px;
+}
+
+.active .name {
+  font-weight: 600;
 }
 
 .meta {
-  font-family: var(--mono);
-  font-size: 11.5px;
+  font-size: 13px;
   color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
 }
 
 .delete {
-  background: transparent;
-  border: none;
-  border-left: var(--border) solid var(--ink);
+  align-self: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  background: none;
+  border: 0;
+  border-radius: 999px;
   color: var(--text-faint);
-  padding: 0 15px;
-  font-size: 20px;
+  font-size: 22px;
   line-height: 1;
 }
 

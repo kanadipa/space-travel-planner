@@ -1,5 +1,4 @@
 import type { Planet } from '../types';
-import { temperature } from '../format';
 import styles from './Controls.module.css';
 
 /**
@@ -11,79 +10,68 @@ function uncapitalise(sentence: string): string {
 }
 
 interface Props {
-  destinations: Planet[];
   excluded: { body: Planet; reason: string }[];
-  selectedIds: string[];
   passengerCount: number;
   departureDate: string;
   maxCapacity: number;
-  onToggleDestination: (id: string) => void;
   onPassengerCount: (value: number) => void;
   onDepartureDate: (value: string) => void;
 }
 
+/** Destinations are picked on the diagram; what is left here is the rest of the mission. */
 export function Controls({
-  destinations,
   excluded,
-  selectedIds,
   passengerCount,
   departureDate,
   maxCapacity,
-  onToggleDestination,
   onPassengerCount,
   onDepartureDate,
 }: Props) {
   return (
     <section className={styles.panel}>
-      <div className={styles.row}>
-        <label className={styles.label} htmlFor="pax">
-          Passengers
-        </label>
-        <input
-          id="pax"
-          type="range"
-          min={1}
-          max={maxCapacity}
-          step={1}
-          value={passengerCount}
-          onChange={(event) => onPassengerCount(Number(event.target.value))}
-          className={styles.slider}
-        />
-        <output className={styles.readout}>{passengerCount}</output>
+      <div className={styles.controls}>
+        {/* Stepped rather than dragged: the figure is a head count, and the
+            largest craft in the fleet is the ceiling. */}
+        <div className={styles.field}>
+          <span className={styles.label} id="pax-label">
+            Passengers
+          </span>
+          <div className={styles.stepper}>
+            <button
+              type="button"
+              className={styles.step}
+              onClick={() => onPassengerCount(Math.max(1, passengerCount - 1))}
+              disabled={passengerCount <= 1}
+              aria-label="One fewer passenger"
+            >
+              –
+            </button>
+            <output className={styles.readout} aria-labelledby="pax-label">
+              {passengerCount}
+            </output>
+            <button
+              type="button"
+              className={styles.step}
+              onClick={() => onPassengerCount(Math.min(maxCapacity, passengerCount + 1))}
+              disabled={passengerCount >= maxCapacity}
+              aria-label="One more passenger"
+            >
+              +
+            </button>
+          </div>
+        </div>
 
-        <label className={styles.label} htmlFor="departure">
-          Departure
-        </label>
-        <input
-          id="departure"
-          type="date"
-          value={departureDate}
-          onChange={(event) => onDepartureDate(event.target.value)}
-          className={styles.date}
-        />
-      </div>
-
-      <div className={styles.destinations}>
-        <span className={styles.label}>Destinations</span>
-        <div className={styles.chips}>
-          {destinations.map((body) => {
-            const active = selectedIds.includes(body.id);
-            return (
-              <button
-                key={body.id}
-                type="button"
-                className={active ? styles.chipOn : styles.chip}
-                onClick={() => onToggleDestination(body.id)}
-                aria-pressed={active}
-                title={`${temperature(body.averageTemperatureC)}${
-                  body.weatherPatterns ? ` · ${body.weatherPatterns}` : ''
-                }`}
-              >
-                {body.name}
-                {body.potentiallyHabitable && <i className={styles.habitable} title="Habitable" />}
-              </button>
-            );
-          })}
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="departure">
+            Departure
+          </label>
+          <input
+            id="departure"
+            type="date"
+            value={departureDate}
+            onChange={(event) => onDepartureDate(event.target.value)}
+            className={styles.date}
+          />
         </div>
       </div>
 

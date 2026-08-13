@@ -1,108 +1,87 @@
+/* Tinted, not framed: the panel groups the two fields without drawing a box. */
 .panel {
-  background: var(--surface);
-  border: var(--border) solid var(--ink);
-  border-radius: var(--radius-lg);
-  box-shadow: 4px 4px 0 var(--ink);
-  padding: 15px 17px;
-  margin-bottom: 18px;
+  background: var(--surface-soft);
+  border-radius: var(--radius-panel);
+  padding: 24px 26px;
 }
 
-.row {
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 32px 40px;
+}
+
+.field {
   display: flex;
   align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .label {
-  font-size: 12px;
+  font-size: 15px;
   color: var(--text-dim);
 }
 
-.slider {
-  flex: 1;
-  min-width: 160px;
-  accent-color: var(--accent-strong);
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
+.step {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.step:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.step:disabled {
+  color: var(--text-faint);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Fixed width and tabular digits, so stepping never shifts the buttons. */
 .readout {
-  font-family: var(--mono);
+  font-family: var(--display);
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
-  font-size: 17px;
-  min-width: 28px;
-  text-align: right;
+  font-size: 28px;
+  min-width: 52px;
+  text-align: center;
 }
 
 .date {
-  background: var(--surface-soft);
-  border: var(--border) solid var(--ink);
-  border-radius: 10px;
-  padding: 5px 9px;
-  font-size: 13px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: none;
+  padding: 10px 2px;
+  font-size: 17px;
+  min-height: 44px;
 }
 
-.destinations {
-  margin-top: 15px;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  flex: 1;
-}
-
-/* Selection is never colour alone: the chosen chip also gains an offset
-   shadow, so it stays distinguishable in greyscale and to colourblind users. */
-.chip,
-.chipOn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border-radius: 999px;
-  padding: 5px 13px;
-  font-size: 13px;
-  font-weight: 700;
-  border: var(--border) solid var(--ink);
-  background: var(--surface);
-  color: var(--text-dim);
-  transition: transform 90ms ease, box-shadow 90ms ease;
-}
-
-.chip:hover {
-  color: var(--text);
-  background: var(--surface-soft);
-}
-
-.chipOn {
-  background: var(--accent);
-  color: var(--ink);
-  font-weight: 800;
-  box-shadow: 2px 2px 0 var(--ink);
-  transform: translate(-1px, -1px);
-}
-
-.habitable {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #4faa6b;
-  border: 1.5px solid var(--ink);
+.date:hover {
+  border-bottom-color: var(--accent);
 }
 
 .excluded {
-  margin: 13px 0 0;
-  padding-top: 11px;
-  border-top: 2px solid var(--surface-sunk);
-  font-size: 12px;
+  margin: 22px 0 0;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
   color: var(--text-faint);
 }
 
 .excluded strong {
-  font-weight: 800;
+  font-weight: 600;
   color: var(--text-dim);
 }

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App';
@@ -64,12 +64,18 @@ describe('planner screen', () => {
     expect(screen.getByText(/1 of 3 can fly this route/i)).toBeInTheDocument();
   });
 
-  it('keeps ruled-out craft visible with their reasons', async () => {
+  /* Folded while something in the fleet fits, because the answer comes first —
+     but never dropped, and never more than one click away. */
+  it('keeps ruled-out craft and their reasons one click away', async () => {
     const user = userEvent.setup();
     installFakeApi();
     render(<App />);
 
     await chooseMars(user);
+
+    expect(screen.queryByText('Galactica Scout')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /ruled out/ }));
 
     expect(screen.getByText('Galactica Scout')).toBeInTheDocument();
     expect(screen.getByText('Capacity exceeded')).toBeInTheDocument();
@@ -91,6 +97,8 @@ describe('planner screen', () => {
     expect(screen.queryByRole('button', { name: /Galactica Scout/ })).not.toBeInTheDocument();
   });
 
+  /* With no answer to show, the reasons are the whole screen, so they are not
+     folded away — no click needed to reach them here. */
   it('says so plainly when nothing in the fleet can fly the route', async () => {
     const user = userEvent.setup();
     installFakeApi({ evaluation: nothingFeasible });
@@ -100,6 +108,7 @@ describe('planner screen', () => {
 
     expect(screen.getByText(/Nothing in the fleet can fly this route/i)).toBeInTheDocument();
     expect(screen.getByText(/0 of 3 can fly this route/i)).toBeInTheDocument();
+    expect(screen.getByText('Capacity exceeded')).toBeInTheDocument();
   });
 
   it('requires a feasible craft before the mission can be saved', async () => {
@@ -226,7 +235,7 @@ describe('planner screen', () => {
 
     expect(screen.queryByText(/unsaved changes/i)).not.toBeInTheDocument();
 
-    fireEvent.change(screen.getByRole('slider'), { target: { value: '9' } });
+    await user.click(screen.getByRole('button', { name: /One more passenger/i }));
 
     expect(await screen.findByText(/unsaved changes/i)).toBeInTheDocument();
   });
@@ -282,14 +291,14 @@ describe('planner screen', () => {
 
     const before = requests.filter((r) => r.path === '/evaluations').length;
 
-    fireEvent.change(screen.getByRole('slider'), { target: { value: '8' } });
+    await user.click(screen.getByRole('button', { name: /One more passenger/i }));
 
     await waitFor(() =>
       expect(requests.filter((r) => r.path === '/evaluations').length).toBeGreaterThan(before),
     );
 
     const latest = requests.filter((r) => r.path === '/evaluations').at(-1);
-    expect((latest!.body as { passengerCount: number }).passengerCount).toBe(8);
+    expect((latest!.body as { passengerCount: number }).passengerCount).toBe(5);
   });
 
   it('reports a dead API rather than rendering an empty screen', async () => {
