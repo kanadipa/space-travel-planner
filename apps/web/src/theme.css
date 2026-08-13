@@ -26,9 +26,9 @@
   --radius-lg: 18px;
   --border: 2.5px;
 
-  --mono: 'DM Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-  --sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --display: 'Outfit', 'Inter', system-ui, sans-serif;
+  /* Whatever the machine already uses. Mono is reserved for figures. */
+  --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+  --sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
 * {
@@ -50,7 +50,6 @@ body {
 h1,
 h2,
 h3 {
-  font-family: var(--display);
   font-weight: 500;
   margin: 0;
 }

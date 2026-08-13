@@ -15,10 +15,8 @@
 }
 
 .label {
-  font-family: var(--mono);
   font-size: 12px;
   color: var(--text-dim);
-  letter-spacing: 0.04em;
 }
 
 .slider {
@@ -40,7 +38,6 @@
   border: var(--border) solid var(--ink);
   border-radius: 10px;
   padding: 5px 9px;
-  font-family: var(--mono);
   font-size: 13px;
 }
 
