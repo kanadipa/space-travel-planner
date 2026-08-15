@@ -5,28 +5,21 @@
   gap: 22px;
 }
 
-/* The ring is the one size everything else is placed from: the axis sits on its
-   centre line and the arcs spring off that. Change --ring and the rest follows. */
 .chart {
   --ring: 48px;
   --arc: 34px;
-  /* Chart padding plus the button's own top padding, above the ring. */
   --above: 18px;
   --axis-y: calc(var(--above) + var(--ring) / 2);
 
   position: relative;
   padding-top: 10px;
-  /* Below this the 48px rings cannot fit eight abreast, so the row scrolls
-     rather than pushing the page sideways. */
   min-width: 360px;
 }
 
-/* Keeps a cramped row inside the page instead of widening the document. */
 .scroller {
   overflow-x: auto;
 }
 
-/* The full span of the system, behind everything. */
 .axis {
   position: absolute;
   left: 6%;
@@ -36,7 +29,6 @@
   background: var(--line);
 }
 
-/* The stretch actually flown, from the first body on the route to the last. */
 .route {
   position: absolute;
   top: calc(var(--axis-y) - 1px);
@@ -45,10 +37,6 @@
   background: var(--accent);
 }
 
-/* Hops over a body standing in the path. Sized in pixels rather than to the
-   viewBox, so the dashes keep their rhythm however wide the row is, with a
-   radius half again the ring's so the arc clearly clears the body. Its foot
-   lands on the axis. */
 .arc {
   position: absolute;
   top: calc(var(--axis-y) - var(--arc));
@@ -63,7 +51,6 @@
   stroke-linecap: round;
 }
 
-/* One equal column per body, however many the catalogue returns. */
 .row {
   position: relative;
   display: grid;
@@ -71,7 +58,6 @@
   grid-auto-columns: 1fr;
 }
 
-/* One column per body, whether or not it can be chosen, so the two stay in step. */
 .planet,
 .home {
   appearance: none;
@@ -94,9 +80,6 @@
   cursor: default;
 }
 
-/* One target size on every body, so picking Mercury is no harder than Jupiter.
-   Filled with the page colour, so the axis and the route stop at each body
-   instead of running through it. */
 .ring {
   width: var(--ring);
   height: var(--ring);
@@ -114,7 +97,6 @@
   border-color: var(--accent);
 }
 
-/* Barely there, but there: every body that can be picked shows its target at rest. */
 .ringOff {
   border-color: var(--line);
 }
@@ -156,7 +138,7 @@
 
 .tag {
   font-size: 12px;
-  color: var(--text-faint);
+  color: var(--text-dim);
   min-height: 16px;
 }
 
@@ -167,7 +149,7 @@
   gap: 8px 22px;
   margin: 0;
   font-size: 13px;
-  color: var(--text-faint);
+  color: var(--text-dim);
 }
 
 .caption span {

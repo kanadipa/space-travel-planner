@@ -1,38 +1,30 @@
-/* Warm paper, hairlines, generous radii. Nothing is outlined: separation comes
-   from a tint or a single hairline, never from a border plus a hard shadow. */
 :root {
-  --bg: oklch(0.968 0.022 85);
-  /* Slightly deeper than the page, for a panel that groups without framing. */
-  --surface-soft: oklch(0.945 0.032 88);
-  /* Lifted above the page, for a control that should look pressable. */
-  --surface: oklch(0.995 0.012 88);
-  --surface-hover: oklch(0.95 0.032 88);
+  --bg: white;
+  --surface-soft: whitesmoke;
+  --surface: cream;
+  --surface-hover: whitesmoke;
 
-  --text: oklch(0.3 0.05 305);
-  --text-dim: oklch(0.5 0.045 305);
-  --text-faint: oklch(0.53 0.045 305);
+  --text: black;
+  --text-dim: dimgrey;
 
-  --accent: oklch(0.55 0.19 295);
-  --accent-deep: oklch(0.42 0.19 295);
-  /* Behind a chosen planet, so selection is a glow rather than a fill. */
-  --accent-halo: oklch(0.92 0.07 300);
-  /* The dashed states: a body passed rather than visited. */
-  --accent-mid: oklch(0.63 0.15 300);
-  --accent-pale: oklch(0.72 0.1 295);
+  --accent: mediumpurple;
+  --accent-deep: rebeccapurple;
+  --accent-halo: lavender;
+  --accent-mid: darkorchid;
+  --accent-pale: plum;
 
-  --line: oklch(0.885 0.028 85);
+  --line: lightgray;
 
-  --warn: oklch(0.94 0.05 75);
-  --warn-ink: oklch(0.45 0.13 62);
-  --bad: oklch(0.94 0.045 30);
-  --bad-ink: oklch(0.48 0.14 28);
-  --ok: oklch(0.62 0.16 160);
+  --warn: moccasin;
+  --warn-ink: sienna;
+  --bad: mistyrose;
+  --bad-ink: firebrick;
+  --ok: mediumseagreen;
 
-  /* The four figure cards, tinted so each reads as its own quantity. */
-  --tint-distance: oklch(0.93 0.055 95);
-  --tint-duration: oklch(0.92 0.05 225);
-  --tint-arrival: oklch(0.92 0.055 40);
-  --tint-range: oklch(0.92 0.05 160);
+  --tint-distance: lemonchiffon;
+  --tint-duration: lightcyan;
+  --tint-arrival: bisque;
+  --tint-range: honeydew;
 
   --radius: 14px;
   --radius-card: 20px;
@@ -79,8 +71,6 @@ select {
   color: inherit;
 }
 
-/* Every figure is set in the display face, and never reflows as it changes:
-   the ones that tick get tabular digits, the rest get a floor width. */
 .num,
 output {
   font-family: var(--display);

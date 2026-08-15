@@ -83,7 +83,7 @@
 }
 
 .loading {
-  color: var(--text-faint);
+  color: var(--text-dim);
 }
 
 .fatal {
@@ -128,7 +128,7 @@
 
 .metricHint {
   font-size: 13px;
-  color: var(--text-faint);
+  color: var(--text-dim);
   min-height: 20px;
 }
 
@@ -176,7 +176,7 @@
   background: var(--accent);
   border: 0;
   border-radius: 999px;
-  color: oklch(0.995 0.012 88);
+  color: cream;
   padding: 0 30px;
   min-height: 52px;
   font-family: var(--display);
@@ -191,6 +191,6 @@
 
 .primary:disabled {
   background: var(--surface-soft);
-  color: var(--text-faint);
+  color: var(--text-dim);
   cursor: not-allowed;
 }

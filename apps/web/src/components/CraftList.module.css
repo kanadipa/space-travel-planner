@@ -36,11 +36,6 @@
   padding: 0;
 }
 
-/* Rows are separated by a single rule, not boxed. The row itself is the button,
-   so the whole width is the target. */
-/* A button is fit-content even as a flex container, so the width is explicit.
-   It carries its own padding either side and pulls back by the same amount, so
-   the tinted row is wider than the rule without shifting off it. */
 .row {
   width: calc(100% + 28px);
   display: flex;
@@ -90,13 +85,10 @@
   color: var(--accent-deep);
 }
 
-/* Marks the recommendation without tinting the row: the tint is reserved for the
-   craft the agent has actually chosen. */
 .badge {
   color: var(--accent);
 }
 
-/* Advisory: the craft could fly this route on another date. */
 .busy {
   color: var(--warn-ink);
   background: var(--warn);
@@ -161,8 +153,6 @@
   justify-content: flex-end;
 }
 
-/* Names the reason and keeps the row scannable; the full sentence is one hover
-   or one tab-stop away, rather than printed on every ruled-out craft. */
 .stampWarn,
 .stampBad {
   position: relative;
@@ -218,7 +208,6 @@
   transition: opacity 120ms ease;
 }
 
-/* The pointer that ties the box to its chip. */
 .tip::after {
   content: '';
   position: absolute;
@@ -239,5 +228,5 @@
 
 .rejectedSpecs {
   font-size: 13px;
-  color: var(--text-faint);
+  color: var(--text-dim);
 }

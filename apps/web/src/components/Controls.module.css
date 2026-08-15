@@ -1,4 +1,3 @@
-/* Tinted, not framed: the panel groups the two fields without drawing a box. */
 .panel {
   background: var(--surface-soft);
   border-radius: var(--radius-panel);
@@ -45,12 +44,11 @@
 }
 
 .step:disabled {
-  color: var(--text-faint);
+  color: var(--text-dim);
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* Fixed width and tabular digits, so stepping never shifts the buttons. */
 .readout {
   font-family: var(--display);
   font-weight: 700;
@@ -78,7 +76,7 @@
   padding-top: 18px;
   border-top: 1px solid var(--line);
   font-size: 14px;
-  color: var(--text-faint);
+  color: var(--text-dim);
 }
 
 .excluded strong {

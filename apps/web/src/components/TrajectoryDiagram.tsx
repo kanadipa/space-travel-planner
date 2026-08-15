@@ -20,15 +20,8 @@ function describe(body: Planet, isSelected: boolean): string {
 }
 
 /**
- * Evenly spaced rather than to scale: the distances span 58 million to 4.5
- * billion km, so any true scale puts the four inner planets on top of each other.
- *
- * The diagram is the destination control. There is no separate list of planets to
- * keep in step with it, and no way for the two to disagree.
- *
- * Laid out in HTML rather than as one drawing, so the names stay real text at a
- * real size instead of scaling with a viewBox. Only the detour arcs are SVG,
- * where a dashed half-circle can be struck exactly.
+ * The diagram is the destination control, and it's not scaled down. 
+ * The planets are clickable, showing the respective state.
  */
 export function TrajectoryDiagram({
   bodies,
@@ -99,8 +92,6 @@ export function TrajectoryDiagram({
                     <span className={isOnRoute || isDeparture ? styles.nameOn : styles.name}>
                       {body.name}
                     </span>
-                    {/* Names the state in words as well as in colour, so the route
-                      survives greyscale and reads without the legend. */}
                     <span className={styles.tag}>
                       {isDeparture ? 'depart' : isSelected ? 'stop' : ''}
                     </span>
@@ -145,8 +136,6 @@ export function TrajectoryDiagram({
         </div>
       </div>
 
-      {/* Nothing to key or total until a route exists, and an empty caption would
-          still hold its space. */}
       {legs.length > 0 && (
         <figcaption className={styles.caption}>
           <span>
