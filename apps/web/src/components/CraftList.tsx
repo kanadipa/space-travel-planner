@@ -6,22 +6,13 @@ import styles from './CraftList.module.css';
 interface Props {
   evaluations: Evaluation[];
   fleet: Spacecraft[];
-  /**
-   * Craft already committed to another saved mission over this window.
-   *
-   * Separate from the failure list on purpose: those craft cannot fly the route at
-   * all, whereas these could if the dates were different. They stay selectable so
-   * the chip explains the dead save button, rather than the craft vanishing from a
-   * list it was in a moment ago.
-   */
   busyIds: string[];
   selectedId: string | null;
   onSelect: (id: string) => void;
 }
 
 /**
- * A short name for a failure, read from the structured `detail` rather than by
- * parsing the message, so the chip and the sentence behind it cannot disagree.
+ * Briefing of reason for failing to be fit for the mission.
  */
 function reasonFor(failure: Failure): string {
   switch (failure.code) {
@@ -39,17 +30,14 @@ function reasonFor(failure: Failure): string {
 }
 
 export function CraftList({ evaluations, fleet, busyIds, selectedId, onSelect }: Props) {
-  /** Null until the agent says otherwise, so the default can follow the answer. */
   const [openedByHand, setOpenedByHand] = useState<boolean | null>(null);
 
   const byId = new Map(fleet.map((craft) => [craft.id, craft]));
   const feasible = evaluations.filter((evaluation) => evaluation.feasible);
   const ruledOut = evaluations.filter((evaluation) => !evaluation.feasible);
-  /* Open when there is no answer to show: the reasons are the only thing left to
-     read, and folding them away would hide the whole screen's content. */
+
   const showRuledOut = openedByHand ?? feasible.length === 0;
-  /* No fallback: if every feasible craft is committed, nothing here can be saved
-     and a recommendation would only walk the agent into the refusal. */
+
   const recommendedId = feasible.find((e) => !busyIds.includes(e.spacecraftId))?.spacecraftId;
 
   return (
@@ -86,12 +74,7 @@ export function CraftList({ evaluations, fleet, busyIds, selectedId, onSelect }:
               >
                 <span className={styles.rowMain}>
                   <span className={styles.rowName}>{craft.name}</span>
-                  {/* Says the state in words, not only in tint. */}
                   {chosen && <span className={styles.chosen}>chosen</span>}
-                  {/* The evaluator returns feasible craft with the most range to
-                      spare first, so the recommendation is the first one that can
-                      actually be saved — recommending a craft whose save button is
-                      dead would send the agent straight into the refusal. */}
                   {craft.id === recommendedId && <span className={styles.badge}>Recommended</span>}
                   {busy && (
                     <span
@@ -112,8 +95,6 @@ export function CraftList({ evaluations, fleet, busyIds, selectedId, onSelect }:
         })}
       </ul>
 
-      {/* Folded away rather than dropped: the reasons matter when nothing fits,
-          and are noise when something does. */}
       {ruledOut.length > 0 && (
         <div className={styles.ruledOut}>
           <button

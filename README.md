@@ -32,8 +32,6 @@ acts — so it is also what you run after pulling a schema change.
 | `npm run test:e2e` | 4 browser tests through the full stack |
 | `npm run db:down` | Stops the Postgres container |
 
-If you cannot run Docker, switch the `datasource` in
-`apps/api/prisma/schema.prisma` to `sqlite` with `DATABASE_URL="file:./dev.db"`.
 The `String[]` and `Json` columns would have to become serialised strings first,
 so that path is untested — Docker is the supported one.
 
@@ -72,7 +70,7 @@ surfaceDistance(a, b) = |dₐ − d_b| − rₐ − r_b
 
 **Detours.** Planets are solid, so a body lying between two endpoints cannot be
 flown through. The shortest path that clears a sphere runs over its surface, a
-semicircle of length `πr`, replacing the `2r` a straight line would have covered.
+semicircle of length `πr`.
 
 A craft that stops at a body and then continues in the same direction also pays
 the detour: it departs from its exact arrival point, so the body is still in the

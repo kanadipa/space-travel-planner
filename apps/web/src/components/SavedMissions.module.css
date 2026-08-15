@@ -56,7 +56,7 @@
 }
 
 .main:hover {
-  background: var(--surface-hover);
+  background: var(--surface);
 }
 
 .active .main {

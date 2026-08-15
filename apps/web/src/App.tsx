@@ -8,7 +8,7 @@ import { TrajectoryDiagram } from './components/TrajectoryDiagram';
 import type { CatalogResponse, Evaluation, Failure, Mission, Spacecraft } from './types';
 import styles from './App.module.css';
 
-/** The supplied data carries no epoch and missions run for years. See ASSUMPTIONS.md. */
+/** The supplied data carries no epoch and missions run for years. */
 function defaultDepartureDate(): string {
   const now = new Date();
   return isoDate(new Date(Date.UTC(2041, now.getUTCMonth(), now.getUTCDate())));
@@ -227,8 +227,6 @@ export function App() {
         )}
       </header>
 
-      {/* The diagram leads: it is where the route is chosen, and the panel below
-          carries what is left of the mission. */}
       <TrajectoryDiagram
         bodies={bodies}
         departure={catalog.departure}
@@ -254,17 +252,14 @@ export function App() {
             <Metric
               label="Total distance"
               value={distance(preview?.itinerary.totalDistanceKm ?? 0)}
-              tint="var(--tint-distance)"
             />
             <Metric
               label="Consumption rate"
               value={(preview?.consumptionRate ?? 1).toFixed(3)}
               hint={`${passengerCount} aboard`}
-              tint="var(--tint-arrival)"
             />
             <Metric
               label="Duration"
-              tint="var(--tint-duration)"
               value={preview ? years(preview.durationYears) : '—'}
               hint={preview ? `arrives ${arrivalOf(departureDate, preview.durationYears)}` : ''}
             />
@@ -272,7 +267,6 @@ export function App() {
               label="Range used"
               value={preview ? percent(preview.rangeUtilisation) : '—'}
               hint={preview ? distance(preview.rangeConsumedKm) : ''}
-              tint="var(--tint-range)"
             />
           </div>
 
@@ -292,8 +286,6 @@ export function App() {
                   : 'Choose a feasible spacecraft to save this mission.'}
               </p>
 
-              {/* Says why the button is dead. The server refuses the same case with
-                  a 409, so this is the reason shown early, not the rule itself. */}
               {selectedIsBusy && (
                 <p className={styles.warning}>
                   This spacecraft is already committed to another mission over these dates. Choose
@@ -338,15 +330,13 @@ function Metric({
   label,
   value,
   hint,
-  tint,
 }: {
   label: string;
   value: string;
   hint?: string;
-  tint: string;
 }) {
   return (
-    <div className={styles.metric} style={{ background: tint }}>
+    <div className={styles.metric} style={{ background: "var(--surface)" }}>
       <span className={styles.metricLabel}>{label}</span>
       <span className={styles.metricValue}>{value}</span>
       <span className={styles.metricHint}>{hint}</span>

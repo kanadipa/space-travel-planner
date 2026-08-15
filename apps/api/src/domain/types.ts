@@ -1,18 +1,13 @@
 export type BodyType = 'Planet' | 'Star';
 
 export interface Planet {
-  /** Stable identifier, derived from the name at parse time. */
   id: string;
   name: string;
   type: BodyType;
-  /** Distance from the sun, centre to centre (prerequisite 3c). */
   distanceFromSunKm: number;
   diameterKm: number;
   averageTemperatureC: number;
   potentiallyHabitable: boolean;
-
-  // Carried through from the YAML but used by no rule: 6a declares gravity
-  // negligible and 6c declares moons irrelevant. See ASSUMPTIONS.md.
   weatherPatterns?: string;
   radiationLevelsMsv?: number;
   gravityMPerS2?: number;
@@ -25,7 +20,6 @@ export interface Spacecraft {
   size: string;
   massKg: number;
   capacity: number;
-  /** Nominal range in km, before passenger consumption is applied. */
   rangeKm: number;
   travelSpeedKmPerHour: number;
   gravityGenerator: boolean;

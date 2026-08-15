@@ -2,12 +2,6 @@ import { defineConfig, devices } from '@playwright/test';
 
 const WEB_URL = 'http://localhost:5173';
 
-/**
- * The one layer that runs the real thing: a real browser against the built API
- * and the same Postgres the app uses in development.
- *
- * Run with `npm run test:e2e`, which brings the database up first.
- */
 export default defineConfig({
   testDir: './e2e',
 

@@ -2,8 +2,8 @@ import type { Planet } from '../types';
 import styles from './Controls.module.css';
 
 /**
- * Lowercases only the leading character so the reason reads as a clause after the
- * body name. Lowercasing the whole string would turn the unit `°C` into `°c`.
+ * Lowercases only the leading character so the reason reads as a clause 
+ * after the npbody name.
  */
 function uncapitalise(sentence: string): string {
   return sentence.charAt(0).toLowerCase() + sentence.slice(1);
@@ -18,7 +18,6 @@ interface Props {
   onDepartureDate: (value: string) => void;
 }
 
-/** Destinations are picked on the diagram; what is left here is the rest of the mission. */
 export function Controls({
   excluded,
   passengerCount,
@@ -30,8 +29,6 @@ export function Controls({
   return (
     <section className={styles.panel}>
       <div className={styles.controls}>
-        {/* Stepped rather than dragged: the figure is a head count, and the
-            largest craft in the fleet is the ceiling. */}
         <div className={styles.field}>
           <span className={styles.label} id="pax-label">
             Passengers

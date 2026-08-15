@@ -1,5 +1,5 @@
 .panel {
-  background: var(--surface-soft);
+  background: var(--surface);
   border-radius: var(--radius-panel);
   padding: 24px 26px;
 }

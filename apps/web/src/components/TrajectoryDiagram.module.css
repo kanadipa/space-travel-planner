@@ -5,6 +5,10 @@
   gap: 22px;
 }
 
+.summary{
+  margin: 0px;
+}
+
 .chart {
   --ring: 48px;
   --arc: 34px;
@@ -73,7 +77,7 @@
 }
 
 .planet:hover {
-  background: var(--surface-hover);
+  background: var(--surface);
 }
 
 .home {
@@ -179,8 +183,6 @@
   min-width: 200px;
 }
 
-/* Eight bodies will not carry a 48px ring and a 14px name on a phone, so both
-   step down before the row has to scroll. */
 @media (max-width: 560px) {
   .chart {
     --ring: 40px;

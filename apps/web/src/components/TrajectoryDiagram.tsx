@@ -1,7 +1,7 @@
-import type { Leg, Planet } from '../types';
-import { distance, temperature } from '../format';
-import { fillOf } from '../planets';
-import styles from './TrajectoryDiagram.module.css';
+import type { Leg, Planet } from "../types";
+import { distance, temperature } from "../format";
+import { fillOf } from "../planets";
+import styles from "./TrajectoryDiagram.module.css";
 
 interface Props {
   bodies: Planet[];
@@ -11,16 +11,28 @@ interface Props {
   onToggleDestination: (id: string) => void;
 }
 
-/** What the button announces and what a hover reveals: the reason to pick it. */
-function describe(body: Planet, isSelected: boolean): string {
-  const parts = [temperature(body.averageTemperatureC)];
+/** A description of each part of the trip with its weather patters, temperature, and moons */
+function describe(
+  body: Planet,
+  isSelected: boolean,
+  isPassed: boolean,
+): string {
+  const parts = [];
+  if (body.potentiallyHabitable) parts.push("potentially habitable");
   if (body.weatherPatterns) parts.push(body.weatherPatterns);
-  if (body.potentiallyHabitable) parts.push('potentially habitable');
-  return `${body.name} — ${parts.join(', ')}${isSelected ? '. A stop on this route' : ''}`;
+  if (body.averageTemperatureC)
+    parts.push(temperature(body.averageTemperatureC));
+
+  if (isSelected) {
+    return ` A stop on ${body.name}: ${parts.join(", ")}. Here, you can find the moons: ${body.moons?.join(', ')}.`;
+  } else if (isPassed) {
+    return ` Passing around ${body.name}.`;
+  }
+  return "";
 }
 
 /**
- * The diagram is the destination control, and it's not scaled down. 
+ * The diagram is the destination control, and it's not scaled down.
  * The planets are clickable, showing the respective state.
  */
 export function TrajectoryDiagram({
@@ -34,7 +46,9 @@ export function TrajectoryDiagram({
   /** Centre of a body's column, as a percentage across the row. */
   const centre = (index: number) => ((index + 0.5) / bodies.length) * 100;
 
-  const visited = new Set(legs.flatMap((leg) => [leg.fromPlanetId, leg.toPlanetId]));
+  const visited = new Set(
+    legs.flatMap((leg) => [leg.fromPlanetId, leg.toPlanetId]),
+  );
   const passed = new Set(legs.flatMap((leg) => leg.passedPlanetIds));
 
   const onRouteIndexes = bodies
@@ -45,6 +59,25 @@ export function TrajectoryDiagram({
 
   return (
     <figure className={styles.figure}>
+      <div className={styles.summary}>
+      {selectedIds.length > 0 ? (
+        <span>The journey starts at the Earth.</span>
+      ) : (
+        ""
+      )}
+      {bodies.map((body) => {
+        const isSelected = selectedIds.includes(body.id);
+        const isDeparture = body.id === departure.id;
+
+        const isPassed = passed.has(body.id) && !isSelected && !isDeparture;
+
+        return (
+          <span>
+            {isSelected || isPassed ? describe(body, isSelected, isPassed) : ""}
+          </span>
+        );
+      })}
+      </div>
       <div className={styles.scroller}>
         <div className={styles.chart}>
           <div className={styles.axis} />
@@ -61,20 +94,22 @@ export function TrajectoryDiagram({
 
           <div className={styles.row}>
             {bodies.map((body) => {
-              const dot = 12 + (Math.sqrt(body.diameterKm) / Math.sqrt(maxDiameter)) * 22;
+              const dot =
+                12 + (Math.sqrt(body.diameterKm) / Math.sqrt(maxDiameter)) * 22;
               const isDeparture = body.id === departure.id;
               const isSelected = selectedIds.includes(body.id);
-              const isPassed = passed.has(body.id) && !isSelected && !isDeparture;
+              const isPassed =
+                passed.has(body.id) && !isSelected && !isDeparture;
               const isOnRoute = visited.has(body.id);
 
               const ring = [
                 styles.ring,
                 isOnRoute || isDeparture ? styles.ringOn : styles.ringOff,
-                isSelected ? styles.ringHalo : '',
-                isPassed ? styles.ringPassed : '',
+                isSelected ? styles.ringHalo : "",
+                isPassed ? styles.ringPassed : "",
               ]
                 .filter(Boolean)
-                .join(' ');
+                .join(" ");
 
               const glyph = (
                 <>
@@ -89,11 +124,15 @@ export function TrajectoryDiagram({
                     />
                   </span>
                   <span className={styles.labels}>
-                    <span className={isOnRoute || isDeparture ? styles.nameOn : styles.name}>
+                    <span
+                      className={
+                        isOnRoute || isDeparture ? styles.nameOn : styles.name
+                      }
+                    >
                       {body.name}
                     </span>
                     <span className={styles.tag}>
-                      {isDeparture ? 'depart' : isSelected ? 'stop' : ''}
+                      {isDeparture ? "depart" : isSelected ? "stop" : ""}
                     </span>
                   </span>
                 </>
@@ -101,7 +140,11 @@ export function TrajectoryDiagram({
 
               /* Earth is where the mission leaves from, so it is drawn but never offered. */
               return isDeparture ? (
-                <div key={body.id} className={styles.home} title={describe(body, false)}>
+                <div
+                  key={body.id}
+                  className={styles.home}
+                  title={describe(body, false, false)}
+                >
                   {glyph}
                 </div>
               ) : (
@@ -110,8 +153,8 @@ export function TrajectoryDiagram({
                   type="button"
                   className={styles.planet}
                   aria-pressed={isSelected}
-                  aria-label={describe(body, isSelected)}
-                  title={describe(body, isSelected)}
+                  aria-label={describe(body, isSelected, isPassed)}
+                  title={describe(body, isSelected, isPassed)}
                   onClick={() => onToggleDestination(body.id)}
                 >
                   {glyph}
@@ -121,7 +164,9 @@ export function TrajectoryDiagram({
           </div>
 
           {bodies.map((body, index) =>
-            passed.has(body.id) && !selectedIds.includes(body.id) && body.id !== departure.id ? (
+            passed.has(body.id) &&
+            !selectedIds.includes(body.id) &&
+            body.id !== departure.id ? (
               <svg
                 key={body.id}
                 className={styles.arc}
@@ -143,11 +188,13 @@ export function TrajectoryDiagram({
           </span>
           {passed.size > 0 && (
             <span>
-              <i className={styles.keyDetour} /> detour around a body in the path
+              <i className={styles.keyDetour} /> detour around a body in the
+              path
             </span>
           )}
           <span className={styles.note}>
-            Total {distance(legs.reduce((sum, leg) => sum + leg.distanceKm, 0))}.
+            Total {distance(legs.reduce((sum, leg) => sum + leg.distanceKm, 0))}
+            .
           </span>
         </figcaption>
       )}

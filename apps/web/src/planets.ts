@@ -1,7 +1,4 @@
-/* Keyed by id, so a body is the same colour wherever it is drawn. Colour only
-   identifies here: every body is named in the diagram, and no state is carried
-   by fill alone. */
-
+/* Planet colors for the Trajectory*/
 const FILLS: Record<string, string> = {
   sun: '#FFD34D',
   mercury: '#D6D3D1',

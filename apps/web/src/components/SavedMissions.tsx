@@ -19,7 +19,7 @@ export function SavedMissions({ missions, activeId, onLoad, onDelete }: Props) {
 
       {missions.length === 0 ? (
         <p className={styles.empty}>
-          Nothing saved yet. Configure a mission and save it to see it here.
+          There are no missions planned yet. Pick an itinerary and save it.
         </p>
       ) : (
         <ul className={styles.list}>

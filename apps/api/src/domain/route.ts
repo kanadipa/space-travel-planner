@@ -81,6 +81,8 @@ export function buildItinerary(
 
     const surfaceDistanceKm = surfaceDistanceBetween(from, to);
 
+    console.info(surfaceDistanceKm, 'surfaceDistanceKM', from)
+
     legs.push({
       fromPlanetId: from.id,
       toPlanetId: to.id,

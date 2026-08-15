@@ -92,7 +92,7 @@
 }
 
 .prompt {
-  background: var(--surface-soft);
+  background: var(--surface);
   color: var(--text-dim);
 }
 
@@ -190,7 +190,7 @@
 }
 
 .primary:disabled {
-  background: var(--surface-soft);
+  background: var(--surface);
   color: var(--text-dim);
   cursor: not-allowed;
 }

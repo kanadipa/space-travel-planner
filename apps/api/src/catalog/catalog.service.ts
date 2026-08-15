@@ -111,7 +111,7 @@ export class CatalogService {
     return selectableDestinations(this.bodies, this.fleet, this.departure());
   }
 
-  /** Excluded bodies with reasons, so the UI can explain the absence if it wants. */
+  /** Excluded bodies with reasons, so the UI can explain the absence. */
   excluded(): { body: Planet; reason: string }[] {
     return unreachableBodies(this.bodies, this.fleet, this.departure());
   }
