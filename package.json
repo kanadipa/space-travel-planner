@@ -9,7 +9,7 @@
     "setup": "node scripts/setup.mjs",
     "dev": "npm run setup && concurrently -n api,web -c cyan,magenta \"npm:api:dev\" \"npm:web:dev\"",
     "api:dev": "npm run dev -w @smp/api",
-    "web:dev": "npm run dev -w @smp/web",
+    "web:dev": "node scripts/wait-for-api.mjs && npm run dev -w @smp/web",
     "test": "npm run test --workspaces --if-present",
     "test:e2e": "npm run setup && npm run build -w @smp/api && playwright test",
     "typecheck": "npm run typecheck --workspaces --if-present",
