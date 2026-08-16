@@ -55,7 +55,11 @@ describe('POST /api/evaluations', () => {
   it('orders actionable failures before intrinsic ones', async () => {
     const response = await server()
       .post('/api/evaluations')
-      .send({ passengerCount: 2, destinationIds: ['mercury', 'venus'], departureDate: '2041-01-01' })
+      .send({
+        passengerCount: 2,
+        destinationIds: ['mercury', 'venus'],
+        departureDate: '2041-01-01',
+      })
       .expect(200);
 
     for (const evaluation of response.body.evaluations) {

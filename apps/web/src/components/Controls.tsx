@@ -2,7 +2,7 @@ import type { Planet } from '../types';
 import styles from './Controls.module.css';
 
 /**
- * Lowercases only the leading character so the reason reads as a clause 
+ * Lowercases only the leading character so the reason reads as a clause
  * after the npbody name.
  */
 function uncapitalise(sentence: string): string {

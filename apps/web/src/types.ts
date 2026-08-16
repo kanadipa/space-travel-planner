@@ -32,7 +32,8 @@ export interface Leg {
 }
 
 export interface Failure {
-  code: 'CAPACITY_EXCEEDED' | 'OUT_OF_RANGE' | 'TEMPERATURE_OUT_OF_BOUNDS' | 'EXCEEDS_MISSION_WINDOW';
+  code:
+    'CAPACITY_EXCEEDED' | 'OUT_OF_RANGE' | 'TEMPERATURE_OUT_OF_BOUNDS' | 'EXCEEDS_MISSION_WINDOW';
   actionable: boolean;
   message: string;
   detail: Record<string, string | number>;

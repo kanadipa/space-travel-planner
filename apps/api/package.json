@@ -16,9 +16,15 @@
   "jest": {
     "rootDir": "src",
     "testRegex": ".*\\.test\\.ts$",
-    "transform": { "^.+\\.ts$": "ts-jest" },
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
     "testEnvironment": "node",
-    "collectCoverageFrom": ["domain/**/*.ts", "!domain/**/*.test.ts", "!domain/__fixtures__/**"],
+    "collectCoverageFrom": [
+      "domain/**/*.ts",
+      "!domain/**/*.test.ts",
+      "!domain/__fixtures__/**"
+    ],
     "coverageDirectory": "../coverage"
   },
   "dependencies": {

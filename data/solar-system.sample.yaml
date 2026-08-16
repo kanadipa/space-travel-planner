@@ -5,7 +5,7 @@ planets:
     distance_from_sun_km: 0
     average_temperature_c: 5505
     potentially_habitable: false
-    weather_patterns: "Solar flares, radiation storms"
+    weather_patterns: 'Solar flares, radiation storms'
     radiation_levels_msv: 100000
     gravity_m_per_s2: 274
     moons: []
@@ -16,7 +16,7 @@ planets:
     distance_from_sun_km: 57900000
     average_temperature_c: 167
     potentially_habitable: false
-    weather_patterns: "Extreme temperature fluctuations"
+    weather_patterns: 'Extreme temperature fluctuations'
     radiation_levels_msv: 1000
     gravity_m_per_s2: 3.7
     moons: []
@@ -27,7 +27,7 @@ planets:
     distance_from_sun_km: 108200000
     average_temperature_c: 464
     potentially_habitable: false
-    weather_patterns: "Thick clouds, sulfuric acid rain"
+    weather_patterns: 'Thick clouds, sulfuric acid rain'
     radiation_levels_msv: 800
     gravity_m_per_s2: 8.87
     moons: []
@@ -38,7 +38,7 @@ planets:
     distance_from_sun_km: 149600000
     average_temperature_c: 15
     potentially_habitable: true
-    weather_patterns: "Varied (storms, rain, snow)"
+    weather_patterns: 'Varied (storms, rain, snow)'
     radiation_levels_msv: 0.1
     gravity_m_per_s2: 9.8
     moons:
@@ -50,7 +50,7 @@ planets:
     distance_from_sun_km: 227900000
     average_temperature_c: -65
     potentially_habitable: true
-    weather_patterns: "Dust storms, low winds"
+    weather_patterns: 'Dust storms, low winds'
     radiation_levels_msv: 240
     gravity_m_per_s2: 3.71
     moons:
@@ -63,7 +63,7 @@ planets:
     distance_from_sun_km: 778500000
     average_temperature_c: -110
     potentially_habitable: false
-    weather_patterns: "Intense storms, Great Red Spot"
+    weather_patterns: 'Intense storms, Great Red Spot'
     radiation_levels_msv: 2000
     gravity_m_per_s2: 24.79
     moons:
@@ -78,7 +78,7 @@ planets:
     distance_from_sun_km: 1434000000
     average_temperature_c: -140
     potentially_habitable: false
-    weather_patterns: "Storms, icy winds"
+    weather_patterns: 'Storms, icy winds'
     radiation_levels_msv: 1000
     gravity_m_per_s2: 10.44
     moons:
@@ -92,7 +92,7 @@ planets:
     distance_from_sun_km: 2871000000
     average_temperature_c: -195
     potentially_habitable: false
-    weather_patterns: "Methane clouds, ice storms"
+    weather_patterns: 'Methane clouds, ice storms'
     radiation_levels_msv: 500
     gravity_m_per_s2: 8.69
     moons:
@@ -106,7 +106,7 @@ planets:
     distance_from_sun_km: 4495000000
     average_temperature_c: -200
     potentially_habitable: false
-    weather_patterns: "Supersonic winds, methane storms"
+    weather_patterns: 'Supersonic winds, methane storms'
     radiation_levels_msv: 600
     gravity_m_per_s2: 11.15
     moons:

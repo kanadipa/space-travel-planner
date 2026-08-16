@@ -49,10 +49,7 @@ export interface Itinerary {
 }
 
 export type FailureCode =
-  | 'CAPACITY_EXCEEDED'
-  | 'OUT_OF_RANGE'
-  | 'TEMPERATURE_OUT_OF_BOUNDS'
-  | 'EXCEEDS_MISSION_WINDOW';
+  'CAPACITY_EXCEEDED' | 'OUT_OF_RANGE' | 'TEMPERATURE_OUT_OF_BOUNDS' | 'EXCEEDS_MISSION_WINDOW';
 
 export interface Failure {
   code: FailureCode;

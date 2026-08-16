@@ -2,36 +2,48 @@ import { conflictsFor, overlaps, type Booking } from './availability';
 
 const at = (year: number) => new Date(Date.UTC(year, 0, 1));
 
-const booking = (
-  missionId: string,
-  spacecraftId: string,
-  from: number,
-  to: number,
-): Booking => ({ missionId, spacecraftId, departure: at(from), arrival: at(to) });
+const booking = (missionId: string, spacecraftId: string, from: number, to: number): Booking => ({
+  missionId,
+  spacecraftId,
+  departure: at(from),
+  arrival: at(to),
+});
 
 describe('overlaps', () => {
   it('is true when one window starts inside another', () => {
     expect(
-      overlaps({ departure: at(2041), arrival: at(2045) }, { departure: at(2043), arrival: at(2047) }),
+      overlaps(
+        { departure: at(2041), arrival: at(2045) },
+        { departure: at(2043), arrival: at(2047) },
+      ),
     ).toBe(true);
   });
 
   it('is true when one window entirely contains another', () => {
     expect(
-      overlaps({ departure: at(2041), arrival: at(2050) }, { departure: at(2043), arrival: at(2045) }),
+      overlaps(
+        { departure: at(2041), arrival: at(2050) },
+        { departure: at(2043), arrival: at(2045) },
+      ),
     ).toBe(true);
   });
 
   it('is false for windows that do not meet', () => {
     expect(
-      overlaps({ departure: at(2041), arrival: at(2043) }, { departure: at(2045), arrival: at(2047) }),
+      overlaps(
+        { departure: at(2041), arrival: at(2043) },
+        { departure: at(2045), arrival: at(2047) },
+      ),
     ).toBe(false);
   });
 
   /** Landing and leaving at the same instant is allowed: no turnaround is modelled. */
   it('is false when one window ends exactly as the other begins', () => {
     expect(
-      overlaps({ departure: at(2041), arrival: at(2045) }, { departure: at(2045), arrival: at(2050) }),
+      overlaps(
+        { departure: at(2041), arrival: at(2045) },
+        { departure: at(2045), arrival: at(2050) },
+      ),
     ).toBe(false);
   });
 
@@ -60,9 +72,9 @@ describe('conflictsFor', () => {
   });
 
   it('is empty when the craft is free for the whole window', () => {
-    expect(conflictsFor('nyx-odyssey', { departure: at(2045), arrival: at(2049) }, bookings)).toEqual(
-      [],
-    );
+    expect(
+      conflictsFor('nyx-odyssey', { departure: at(2045), arrival: at(2049) }, bookings),
+    ).toEqual([]);
   });
 
   /** Amending a saved plan must not report it as clashing with itself. */

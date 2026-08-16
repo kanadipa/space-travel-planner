@@ -1,4 +1,3 @@
-
 export interface Window {
   departure: Date;
   arrival: Date;

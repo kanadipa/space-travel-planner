@@ -230,10 +230,7 @@ describe('missions', () => {
     it('lets a saved mission be amended without clashing with itself', async () => {
       const mission = await create();
 
-      await server()
-        .patch(`/api/missions/${mission.id}`)
-        .send({ name: 'Renamed' })
-        .expect(200);
+      await server().patch(`/api/missions/${mission.id}`).send({ name: 'Renamed' }).expect(200);
     });
 
     it('refuses an amendment that moves a mission onto a booked window', async () => {

@@ -25,7 +25,9 @@ async function planAndSave(page: Page, body: string): Promise<string> {
   // Waits for the debounced evaluation to land rather than assuming a delay.
   await expect(page.getByText(/can fly this route/)).toBeVisible();
 
-  await fleet(page).getByRole('button', { name: /Serenity XL/ }).click();
+  await fleet(page)
+    .getByRole('button', { name: /Serenity XL/ })
+    .click();
   await page.getByRole('button', { name: 'Save mission' }).click();
   await expect(page.getByRole('button', { name: 'Update mission' })).toBeVisible();
 
@@ -68,7 +70,9 @@ test('will not double-book a craft that is already committed', async ({ page }) 
 
   await expect(fleet(page).getByText(/already booked/)).toBeVisible();
 
-  await fleet(page).getByRole('button', { name: /Serenity XL/ }).click();
+  await fleet(page)
+    .getByRole('button', { name: /Serenity XL/ })
+    .click();
   await expect(page.getByRole('button', { name: 'Save mission' })).toBeDisabled();
   await expect(page.getByText(/already committed to another mission/i)).toBeVisible();
 });
@@ -90,5 +94,8 @@ test('loads a saved mission back into the planner', async ({ page }) => {
     'aria-pressed',
     'true',
   );
-  await expect(page.getByRole('button', { name: /^Mars/ })).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.getByRole('button', { name: /^Mars/ })).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  );
 });

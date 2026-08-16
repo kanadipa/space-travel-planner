@@ -24,13 +24,13 @@ connections, applies the migrations, and then runs the API and the web client
 together in one terminal. It is safe to re-run — every step checks before it
 acts — so it is also what you run after pulling a schema change.
 
-| Command | What it does |
-|---|---|
-| `npm run dev` | Setup, then both servers — API on 3000, web on 5173 |
-| `npm run setup` | The setup only, without starting the servers |
-| `npm test` | 119 unit, integration and component tests. Needs the database up |
-| `npm run test:e2e` | 4 browser tests through the full stack |
-| `npm run db:down` | Stops the Postgres container |
+| Command            | What it does                                                     |
+| ------------------ | ---------------------------------------------------------------- |
+| `npm run dev`      | Setup, then both servers — API on 3000, web on 5173              |
+| `npm run setup`    | The setup only, without starting the servers                     |
+| `npm test`         | 119 unit, integration and component tests. Needs the database up |
+| `npm run test:e2e` | 4 browser tests through the full stack                           |
+| `npm run db:down`  | Stops the Postgres container                                     |
 
 The `String[]` and `Json` columns would have to become serialised strings first,
 so that path is untested — Docker is the supported one.
@@ -77,7 +77,7 @@ the detour: it departs from its exact arrival point, so the body is still in the
 way. A craft that turns around does not — it leaves the way it came.
 
 **Range.** Consumption is `R = 1 + 0.042 × n_p` per km, so the distance a craft
-can actually cover is `range / R`. Reach *falls* as passengers are added, which
+can actually cover is `range / R`. Reach _falls_ as passengers are added, which
 means a lightly loaded craft is a long-range craft. Because `R` rises
 monotonically with passenger count, feasibility is monotonic too: anything
 flyable at full capacity is flyable at any lower count.
@@ -90,17 +90,17 @@ and is marked non-actionable.
 
 ## API
 
-| Method | Path | Purpose |
-|---|---|---|
-| `GET` | `/api/planets` | Selectable destinations, plus excluded bodies and why |
-| `GET` | `/api/spacecraft` | The fleet |
-| `POST` | `/api/evaluations` | Evaluate the whole fleet against a proposed route |
-| `GET` | `/api/missions` | List saved plans |
-| `GET` | `/api/missions/:id` | Load one |
-| `GET` | `/api/missions/reference/:ref` | Load by booking code |
-| `POST` | `/api/missions` | Save |
-| `PATCH` | `/api/missions/:id` | Amend and revalidate |
-| `DELETE` | `/api/missions/:id` | Remove |
+| Method   | Path                           | Purpose                                               |
+| -------- | ------------------------------ | ----------------------------------------------------- |
+| `GET`    | `/api/planets`                 | Selectable destinations, plus excluded bodies and why |
+| `GET`    | `/api/spacecraft`              | The fleet                                             |
+| `POST`   | `/api/evaluations`             | Evaluate the whole fleet against a proposed route     |
+| `GET`    | `/api/missions`                | List saved plans                                      |
+| `GET`    | `/api/missions/:id`            | Load one                                              |
+| `GET`    | `/api/missions/reference/:ref` | Load by booking code                                  |
+| `POST`   | `/api/missions`                | Save                                                  |
+| `PATCH`  | `/api/missions/:id`            | Amend and revalidate                                  |
+| `DELETE` | `/api/missions/:id`            | Remove                                                |
 
 Four outcomes are kept distinct. A malformed body is **400**, rejected by the
 global `ValidationPipe` against the DTO. A well-formed request describing a

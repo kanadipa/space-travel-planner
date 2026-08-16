@@ -8,21 +8,21 @@ added outright. Every interpretation carries a reason.
 
 Taken directly from the prerequisites.
 
-| # | Assumption |
-|---|---|
-| 3a | Planets are solid — a trajectory cannot pass through one. |
-| 3b | Planets are perfect spheres. |
-| 3c | Distance from the sun is measured centre to centre. |
-| 4a | Spacecraft travel at constant speed. |
-| 4b | Range is consumed at `R = 1 + 0.042 × n_p` per km travelled. |
-| 5a | The initial departure from Earth is from the point closest to the destination. |
-| 5b | A planet counts as visited on reaching any point of its surface. |
-| 5c | Departure is always from the same spot as arrival. |
-| 6a | Gravity and other external forces are negligible. |
-| 6b | Any planet lying directly in the path must be passed around. |
-| 6c | Moons do not affect the trajectory. |
-| 6d | The trajectory is optimised for maximum efficiency. |
-| — | Planetary motion is halted for an estimated 42 years; all bodies are collinear. |
+| #   | Assumption                                                                      |
+| --- | ------------------------------------------------------------------------------- |
+| 3a  | Planets are solid — a trajectory cannot pass through one.                       |
+| 3b  | Planets are perfect spheres.                                                    |
+| 3c  | Distance from the sun is measured centre to centre.                             |
+| 4a  | Spacecraft travel at constant speed.                                            |
+| 4b  | Range is consumed at `R = 1 + 0.042 × n_p` per km travelled.                    |
+| 5a  | The initial departure from Earth is from the point closest to the destination.  |
+| 5b  | A planet counts as visited on reaching any point of its surface.                |
+| 5c  | Departure is always from the same spot as arrival.                              |
+| 6a  | Gravity and other external forces are negligible.                               |
+| 6b  | Any planet lying directly in the path must be passed around.                    |
+| 6c  | Moons do not affect the trajectory.                                             |
+| 6d  | The trajectory is optimised for maximum efficiency.                             |
+| —   | Planetary motion is halted for an estimated 42 years; all bodies are collinear. |
 
 ## Interpreted
 
@@ -57,7 +57,7 @@ mission. Radiation and gravity have no stated rule attached and are treated as
 descriptive.
 
 **"Efficiency" in 6d scopes to the trajectory, not the fleet.** The word attaches
-to *trajectory* in the text, and nothing in the brief concerns seat utilisation.
+to _trajectory_ in the text, and nothing in the brief concerns seat utilisation.
 The chosen path is therefore the shortest that satisfies the constraints; fleet
 utilisation is explicitly out of scope. See the design notes on why filling craft
 to capacity would in fact reduce reach.
@@ -73,7 +73,7 @@ with `type: Star` at 5,505 °C. No craft in the fleet has an operational range
 within two thousand degrees of that, so it can never be visited. It is filtered
 out of the destination picker rather than shown and rejected, since offering a
 choice that can never succeed is noise. The filter is data-driven — a body is
-excluded when *no* craft in the fleet can survive it — rather than keyed on
+excluded when _no_ craft in the fleet can survive it — rather than keyed on
 `type`, so a future body with the same problem is handled without a code change.
 The per-craft temperature check is unaffected and still binds at every body on a
 route.

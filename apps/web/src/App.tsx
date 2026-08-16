@@ -207,12 +207,10 @@ export function App() {
             Departing {catalog.departure.name} · orbits halted, 42-year window
           </p>
           <span className={styles.sub}>
-          Pick a planet to add or drop a stop. Bodies are evenly spaced in orbital order, not to
-          scale.
-         </span>
+            Pick a planet to add or drop a stop. Bodies are evenly spaced in orbital order, not to
+            scale.
+          </span>
         </div>
-
-        
 
         {editing && (
           <div className={styles.editing}>
@@ -326,17 +324,9 @@ function arrivalOf(departure: string, durationYears: number): string {
   return longDate(new Date(start.getTime() + durationYears * 365.25 * 24 * 3_600_000));
 }
 
-function Metric({
-  label,
-  value,
-  hint,
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-}) {
+function Metric({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className={styles.metric} style={{ background: "var(--surface)" }}>
+    <div className={styles.metric} style={{ background: 'var(--surface)' }}>
       <span className={styles.metricLabel}>{label}</span>
       <span className={styles.metricValue}>{value}</span>
       <span className={styles.metricHint}>{hint}</span>

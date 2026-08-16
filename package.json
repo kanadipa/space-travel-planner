@@ -13,14 +13,24 @@
     "test": "npm run test --workspaces --if-present",
     "test:e2e": "npm run setup && npm run build -w @smp/api && playwright test",
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "build": "npm run build --workspaces --if-present",
     "db:down": "docker compose down",
     "postinstall": "npm run prisma:generate -w @smp/api"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.62.0",
     "concurrently": "^10.0.4",
-    "typescript": "^5.5.4"
+    "eslint": "^10.8.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.8.0",
+    "prettier": "^3.9.6",
+    "typescript": "^5.5.4",
+    "typescript-eslint": "^8.65.0"
   },
   "engines": {
     "node": ">=20"
