@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    # The integration tests run against a real Postgres, the same as locally.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: smp
+          POSTGRES_PASSWORD: smp
+          POSTGRES_DB: smp
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://smp:smp@localhost:5432/smp?schema=public
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+
+      - run: npm run prisma:deploy -w @smp/api
+      - run: npm test
+
+      # Not `npm run test:e2e`: that calls `npm run setup`, which would start a
+      # second Postgres against the service container above. Playwright brings up
+      # the two servers itself.
+      - run: npm run build -w @smp/api
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test

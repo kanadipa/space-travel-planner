@@ -16,7 +16,8 @@ export default defineConfig({
     {
       // The compiled app, not the watcher — this is the artefact that ships.
       command: 'npm run start -w @smp/api',
-      url: 'http://localhost:3000/api/spacecraft',
+      // Readiness, not just liveness: this one answers only once Postgres does.
+      url: 'http://localhost:3000/api/health',
       reuseExistingServer: true,
       timeout: 60_000,
     },
