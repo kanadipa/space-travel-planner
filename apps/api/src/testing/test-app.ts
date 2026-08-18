@@ -20,11 +20,8 @@ export async function createTestApp(): Promise<INestApplication> {
 }
 
 /**
- * Empties the mission table.
- *
- * Needed per-test, not just per-file, now that saved missions occupy their craft:
- * two tests saving the same craft over the same dates are no longer independent,
- * and the second would be refused by a booking the first left behind.
+ * Empties the mission table. Per-test, not per-file: a saved mission occupies its
+ * craft, so the next test's identical save would be refused by the leftover.
  */
 export async function clearMissions(app: INestApplication): Promise<void> {
   await app.get(PrismaService).mission.deleteMany();

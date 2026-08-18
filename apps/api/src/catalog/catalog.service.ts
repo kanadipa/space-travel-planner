@@ -36,7 +36,7 @@ interface RawSpacecraft {
   operational_temperature_c_max: number;
 }
 
-export function slugify(name: string): string {
+function slugify(name: string): string {
   return name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')

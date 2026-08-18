@@ -12,9 +12,8 @@ interface CraftRequest extends RouteRequest {
 }
 
 /**
- * The only caller of the domain layer. Both the evaluation endpoint and the save
- * path go through it, so a saved mission cannot hold figures the evaluator would
- * not produce.
+ * The only caller of the domain layer, so a saved mission cannot hold figures the
+ * evaluator would not produce.
  */
 @Injectable()
 export class PlanningService {

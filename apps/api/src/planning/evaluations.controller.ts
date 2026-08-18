@@ -11,18 +11,6 @@ export class EvaluationsController {
     private readonly bookings: BookingsService,
   ) {}
 
-  /**
-   * Always 200: "nothing can fly this" is a valid answer to a valid question, so
-   * the client reads `anyFeasible` rather than catching an error.
-   *
-   * `busySpacecraftIds` is deliberately separate from `feasible` even though both
-   * now block a save. Feasibility is physics: it answers the same way every time
-   * and is why a craft can never fly this route. Being committed is scheduling: it
-   * answers from the database and changes as missions are saved and deleted, which
-   * is also why it stays out of `Evaluation` and out of the domain layer. The save
-   * path re-checks it and answers 409 — this list is what lets the UI say so before
-   * the agent gets that far.
-   */
   @Post()
   @HttpCode(200)
   async evaluate(@Body() body: EvaluateDto) {

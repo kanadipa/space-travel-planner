@@ -244,6 +244,45 @@ describe('missions', () => {
 
       expect(response.body.conflicts[0]).toMatchObject({ missionId: first.id });
     });
+
+    /*
+     * Eight requests and a warmed pool are both load-bearing: a pair does not
+     * overlap, and a cold pool serialises the burst while it opens connections.
+     * Drop either and this passes at READ COMMITTED. See ASSUMPTIONS.md.
+     */
+    it('lets only one of a burst of simultaneous saves take the craft', async () => {
+      await Promise.all(Array.from({ length: 8 }, () => server().get('/api/missions')));
+
+      const responses = await Promise.all(
+        Array.from({ length: 8 }, () => server().post('/api/missions').send(FLYABLE)),
+      );
+
+      const created = responses.filter((response) => response.status === 201);
+      const refused = responses.filter((response) => response.status === 409);
+
+      expect(created).toHaveLength(1);
+      expect(refused).toHaveLength(7);
+
+      const saved = await server().get('/api/missions').expect(200);
+      expect(saved.body).toHaveLength(1);
+    });
+
+    it('allocates distinct references when saves land together', async () => {
+      const responses = await Promise.all([
+        server().post('/api/missions').send(FLYABLE),
+        server()
+          .post('/api/missions')
+          .send({ ...FLYABLE, spacecraftId: 'nyx-odyssey' }),
+        server()
+          .post('/api/missions')
+          .send({ ...FLYABLE, spacecraftId: 'star-explorer-1' }),
+      ]);
+
+      for (const response of responses) expect(response.status).toBe(201);
+
+      const references = responses.map((response) => response.body.reference);
+      expect(new Set(references).size).toBe(3);
+    });
   });
 
   describe('reading', () => {
@@ -254,22 +293,8 @@ describe('missions', () => {
       expect(response.body.id).toBe(mission.id);
     });
 
-    it('loads by reference, case-insensitively', async () => {
-      const mission = await create();
-
-      const response = await server()
-        .get(`/api/missions/reference/${mission.reference.toLowerCase()}`)
-        .expect(200);
-
-      expect(response.body.id).toBe(mission.id);
-    });
-
     it('404s for an unknown id', async () => {
       await server().get('/api/missions/does-not-exist').expect(404);
-    });
-
-    it('404s for an unknown reference', async () => {
-      await server().get('/api/missions/reference/ZZZZZ').expect(404);
     });
   });
 

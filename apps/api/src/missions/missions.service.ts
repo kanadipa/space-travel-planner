@@ -4,7 +4,7 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { CatalogService } from '../catalog/catalog.service';
 import { addYears, conflictsFor, type Evaluation, type Spacecraft } from '../domain';
 import { BookingsService } from '../planning/bookings.service';
@@ -12,8 +12,16 @@ import { PlanningService } from '../planning/planning.service';
 import { PrismaService } from '../prisma/prisma.service';
 import type { CreateMissionDto, UpdateMissionDto } from './dto/mission-input.dto';
 
-/** Ambiguous characters removed, so a reference read aloud is unambiguous. */
 const REFERENCE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+/** An aborted transaction cannot be resumed, so retries re-run the whole booking. */
+const BOOKING_ATTEMPTS = 5;
+
+/** Postgres 40001, serialisation failure or deadlock. */
+const WRITE_CONFLICT = 'P2034';
+
+/** Unique violation, which here can only be `reference`. */
+const UNIQUE_VIOLATION = 'P2002';
 
 interface MissionInput {
   spacecraftId: string;
@@ -42,21 +50,16 @@ export class MissionsService {
     return mission;
   }
 
-  async getByReference(reference: string) {
-    const mission = await this.prisma.mission.findUnique({ where: { reference } });
-    if (!mission) throw new NotFoundException(`No mission with reference ${reference}`);
-    return mission;
-  }
-
   async create(request: CreateMissionDto) {
     const { evaluation, craft } = this.validate(request);
-    await this.assertAvailable(request, evaluation);
+    const data = this.derive(request, evaluation, craft);
 
-    return this.prisma.mission.create({
-      data: {
-        reference: await this.uniqueReference(),
-        ...this.derive(request, evaluation, craft),
-      },
+    return this.book(async (tx) => {
+      await this.assertAvailable(request, evaluation, undefined, tx);
+
+      return tx.mission.create({
+        data: { reference: await this.uniqueReference(tx), ...data },
+      });
     });
   }
 
@@ -72,12 +75,30 @@ export class MissionsService {
     };
 
     const { evaluation, craft } = this.validate(merged);
-    await this.assertAvailable(merged, evaluation, id);
+    const data = this.derive(merged, evaluation, craft);
 
-    return this.prisma.mission.update({
-      where: { id },
-      data: this.derive(merged, evaluation, craft),
+    return this.book(async (tx) => {
+      await this.assertAvailable(merged, evaluation, id, tx);
+
+      return tx.mission.update({ where: { id }, data });
     });
+  }
+
+  /**
+   * Write skew: both agents read a clear calendar and both inserts are legal on
+   * their own, so only SERIALIZABLE refuses the second. Postgres aborts one; the
+   * retry sees the committed booking and 409s.
+   */
+  private async book<T>(work: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
+    for (let attempt = 1; ; attempt += 1) {
+      try {
+        return await this.prisma.$transaction(work, {
+          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        });
+      } catch (error) {
+        if (attempt >= BOOKING_ATTEMPTS || !isRetryable(error)) throw error;
+      }
+    }
   }
 
   async remove(id: string): Promise<void> {
@@ -85,12 +106,6 @@ export class MissionsService {
     await this.prisma.mission.delete({ where: { id } });
   }
 
-  /**
-   * A well-formed request describing an infeasible mission is 422, not 400: the
-   * payload was understood, the mission just cannot be flown. Everything is
-   * recomputed here because trusting a client's figures would let a stale one
-   * persist a physically impossible plan.
-   */
   private validate(input: MissionInput): { evaluation: Evaluation; craft: Spacecraft } {
     const { evaluation, craft } = this.planning.evaluateOne(input);
 
@@ -104,31 +119,18 @@ export class MissionsService {
     return { evaluation, craft };
   }
 
-  /**
-   * A craft cannot be in two places at once, so an occupied one is refused.
-   *
-   * 409 and not 422: the mission is physically flyable, it is the fleet calendar
-   * that says no, and the fix is another craft or another date rather than a
-   * different payload. Kept out of `validate` for the same reason it is kept out of
-   * the domain evaluator — feasibility is physics and answers the same way every
-   * time, whereas this answer depends on what is stored and changes as missions are
-   * saved and deleted.
-   *
-   * Enforced here rather than only in the browser because the UI's warning is
-   * advice from a previous evaluation: the client can be stale, or absent
-   * altogether. The window is recomputed from the evaluation that was just run, so
-   * it is the same arithmetic that is about to be written to `arrivalDate`.
-   */
+  /** 409, not 422: the mission is flyable, the craft is just taken. See ASSUMPTIONS.md. */
   private async assertAvailable(
     input: MissionInput,
     evaluation: Evaluation,
-    ignoreMissionId?: string,
+    ignoreMissionId: string | undefined,
+    tx: Prisma.TransactionClient,
   ): Promise<void> {
     const departure = new Date(input.departureDate);
     const clashes = conflictsFor(
       input.spacecraftId,
       { departure, arrival: addYears(departure, evaluation.durationYears) },
-      await this.bookings.all(),
+      await this.bookings.all(tx),
       ignoreMissionId,
     );
 
@@ -178,14 +180,26 @@ export class MissionsService {
     return `${where} · ${when} · ${input.passengerCount} pax`;
   }
 
-  private async uniqueReference(): Promise<string> {
+  /**
+   * Draws a code free as far as this transaction can see. The unique index is the
+   * real guarantee — `book` retries the P2002 — so this only keeps that rare.
+   */
+  private async uniqueReference(tx: Prisma.TransactionClient): Promise<string> {
     for (let attempt = 0; attempt < 8; attempt += 1) {
-      const candidate = `${randomCode(5)}`;
-      const clash = await this.prisma.mission.findUnique({ where: { reference: candidate } });
+      const candidate = randomCode(5);
+      const clash = await tx.mission.findUnique({ where: { reference: candidate } });
       if (!clash) return candidate;
     }
     throw new Error('Could not allocate a unique mission reference.');
   }
+}
+
+/** Aborted for a reason a second run can get past, rather than a refusal to repeat. */
+function isRetryable(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    (error.code === WRITE_CONFLICT || error.code === UNIQUE_VIOLATION)
+  );
 }
 
 /** Narrows a domain object to the plain JSON Prisma will accept for a Json column. */

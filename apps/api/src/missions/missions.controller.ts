@@ -6,15 +6,9 @@ import { MissionsService } from './missions.service';
 export class MissionsController {
   constructor(private readonly missions: MissionsService) {}
 
-  /** Listed as well as fetchable by reference, so a lost code is not a dead end. */
   @Get()
   list() {
     return this.missions.list();
-  }
-
-  @Get('reference/:reference')
-  getByReference(@Param('reference') reference: string) {
-    return this.missions.getByReference(reference.toUpperCase());
   }
 
   @Get(':id')

@@ -49,12 +49,7 @@ export class EvaluateDto {
   @IsDate({ message: 'Departure date is not a valid date.' })
   departureDate!: Date;
 
-  /**
-   * The saved plan being amended, when there is one.
-   *
-   * Sent so the availability check can leave that mission out: a plan must not be
-   * reported as clashing with itself. Absent when planning a new mission.
-   */
+  /** The plan being amended, so the availability check leaves it out of its own check. */
   @IsOptional()
   @IsString()
   editingMissionId?: string;
