@@ -1,5 +1,4 @@
 import { BASE_CONSUMPTION_RATE, HOURS_PER_YEAR, PASSENGER_CONSUMPTION_RATE } from './constants';
-import type { Spacecraft } from './types';
 
 /**
  * R = Rb + (Rp * np), per km travelled (4b). Strictly increasing in passenger
@@ -13,17 +12,12 @@ export function rangeConsumed(distanceKm: number, passengerCount: number): numbe
   return distanceKm * consumptionRate(passengerCount);
 }
 
-/** Falls as passengers are added: a lightly loaded craft is a long-range craft. */
-export function effectiveReachKm(craft: Spacecraft, passengerCount: number): number {
-  return craft.rangeKm / consumptionRate(passengerCount);
-}
-
 /** Travel time in hours. Stop time is not modelled — see ASSUMPTIONS.md. */
-export function durationHours(distanceKm: number, speedKmPerHour: number): number {
+function durationHours(distanceKm: number, speedKmPerHour: number): number {
   return distanceKm / speedKmPerHour;
 }
 
-export function hoursToYears(hours: number): number {
+function hoursToYears(hours: number): number {
   return hours / HOURS_PER_YEAR;
 }
 

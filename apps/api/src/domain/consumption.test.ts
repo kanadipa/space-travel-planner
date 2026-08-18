@@ -1,5 +1,4 @@
-import { workhorse } from './__fixtures__/planets';
-import { consumptionRate, durationYears, effectiveReachKm, rangeConsumed } from './consumption';
+import { consumptionRate, durationYears, rangeConsumed } from './consumption';
 
 describe('consumptionRate', () => {
   it('is the base rate with nobody aboard', () => {
@@ -15,23 +14,6 @@ describe('consumptionRate', () => {
     const rates = [0, 1, 2, 3, 4, 5].map(consumptionRate);
     for (let i = 1; i < rates.length; i += 1) {
       expect(rates[i]!).toBeGreaterThan(rates[i - 1]!);
-    }
-  });
-});
-
-describe('effectiveReachKm', () => {
-  it('equals the nominal range when empty', () => {
-    expect(effectiveReachKm(workhorse, 0)).toBe(workhorse.rangeKm);
-  });
-
-  it('falls as passengers are added', () => {
-    expect(effectiveReachKm(workhorse, 10)).toBeLessThan(effectiveReachKm(workhorse, 5));
-  });
-
-  it('makes feasibility monotonic: full capacity is the worst case', () => {
-    const atCapacity = effectiveReachKm(workhorse, workhorse.capacity);
-    for (let n = 0; n < workhorse.capacity; n += 1) {
-      expect(effectiveReachKm(workhorse, n)).toBeGreaterThanOrEqual(atCapacity);
     }
   });
 });

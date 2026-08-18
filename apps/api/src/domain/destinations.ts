@@ -8,9 +8,8 @@ export function canSurvive(craft: Spacecraft, body: Planet): boolean {
 }
 
 /**
- * The sun is excluded because no craft survives its temperature, not because its
- * type is Star. This only filters what an agent may choose — the per-craft check
- * in `evaluate` still binds at every body on the route.
+ * Excludes the sun by temperature, not by `type: Star`. Only filters the picker —
+ * the per-craft check in `evaluate` still binds at every body on the route.
  */
 export function selectableDestinations(
   bodies: readonly Planet[],

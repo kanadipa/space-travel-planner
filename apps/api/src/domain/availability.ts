@@ -1,4 +1,4 @@
-export interface Window {
+interface Window {
   departure: Date;
   arrival: Date;
 }

@@ -1,5 +1,5 @@
 import { alpha, beta, gamma, inner, planets } from './__fixtures__/planets';
-import { detourFor } from './geometry';
+import { clearanceFor, detourFor } from './geometry';
 import { buildItinerary, orderStops } from './route';
 
 describe('orderStops', () => {
@@ -48,7 +48,15 @@ describe('buildItinerary', () => {
     const itinerary = buildItinerary(alpha, [gamma], planets);
     const [outbound] = itinerary.legs;
     expect(outbound?.passedPlanetIds).toEqual(['beta']);
-    expect(outbound?.detourKm).toBeCloseTo(detourFor(beta), 6);
+    // The arc less the crossing: the surface span already runs through beta.
+    expect(outbound?.detourKm).toBeCloseTo(clearanceFor(beta), 6);
+  });
+
+  /* Computed by hand from the fixtures: alpha's surface at 1100, out to beta's
+     near face at 1800, over beta, on from 2200 to gamma's near face at 2950. */
+  it('measures a fly-past leg the long way round the body, and no further', () => {
+    const [outbound] = buildItinerary(alpha, [gamma], planets).legs;
+    expect(outbound?.distanceKm).toBeCloseTo(700 + Math.PI * 200 + 750, 6);
   });
 
   it('charges a detour at an intermediate stop the route continues past', () => {
@@ -63,14 +71,19 @@ describe('buildItinerary', () => {
     expect(new Set(itinerary.exposedPlanetIds)).toEqual(new Set(['alpha', 'beta', 'gamma']));
   });
 
-  it('stopping at an intermediate body shortens the surface distance flown', () => {
+  /**
+   * The ground path is identical either way, so the total cannot move: a stop
+   * takes two more radii off the spans and adds an arc larger by exactly that
+   * much. Getting either case wrong shows up here and nowhere else.
+   */
+  it('costs the same whether a body in the path is a stop or is flown past', () => {
     const direct = buildItinerary(alpha, [gamma], planets);
     const viaBeta = buildItinerary(alpha, [beta, gamma], planets);
     const surfaceOf = (legs: { surfaceDistanceKm: number }[]) =>
       legs.reduce((sum, leg) => sum + leg.surfaceDistanceKm, 0);
 
-    // Each stop costs two radii of surface clearance that a fly-past does not.
     expect(surfaceOf(viaBeta.legs)).toBeLessThan(surfaceOf(direct.legs));
+    expect(viaBeta.totalDistanceKm).toBeCloseTo(direct.totalDistanceKm, 6);
   });
 
   it('produces an empty itinerary when there is nowhere to go', () => {

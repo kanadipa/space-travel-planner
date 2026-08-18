@@ -1,4 +1,4 @@
-export type BodyType = 'Planet' | 'Star';
+type BodyType = 'Planet' | 'Star';
 
 export interface Planet {
   id: string;
@@ -48,7 +48,7 @@ export interface Itinerary {
   totalDistanceKm: number;
 }
 
-export type FailureCode =
+type FailureCode =
   'CAPACITY_EXCEEDED' | 'OUT_OF_RANGE' | 'TEMPERATURE_OUT_OF_BOUNDS' | 'EXCEEDS_MISSION_WINDOW';
 
 export interface Failure {

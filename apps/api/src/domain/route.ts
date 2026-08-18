@@ -1,4 +1,4 @@
-import { detourFor, planetsBetween, surfaceDistanceBetween } from './geometry';
+import { clearanceFor, detourFor, planetsBetween, surfaceDistanceBetween } from './geometry';
 import type { Itinerary, Leg, Planet } from './types';
 
 type Direction = 'outward' | 'inward';
@@ -7,98 +7,91 @@ function directionBetween(from: Planet, to: Planet): Direction {
   return to.distanceFromSunKm > from.distanceFromSunKm ? 'outward' : 'inward';
 }
 
-/**
- * On one axis a round trip covers twice the span each side of the departure point
- * whatever order the stops come in, so total distance is invariant to ordering.
- * The outward-then-inward sweep is chosen because it reads well on a timeline.
- */
-export function orderStops(departure: Planet, destinations: readonly Planet[]): Planet[] {
-  const unique = new Map<string, Planet>();
-  for (const d of destinations) {
-    if (d.id !== departure.id) unique.set(d.id, d);
-  }
-
-  const outward = [...unique.values()]
-    .filter((p) => p.distanceFromSunKm > departure.distanceFromSunKm)
-    .sort((a, b) => a.distanceFromSunKm - b.distanceFromSunKm);
-
-  const inward = [...unique.values()]
-    .filter((p) => p.distanceFromSunKm < departure.distanceFromSunKm)
-    .sort((a, b) => b.distanceFromSunKm - a.distanceFromSunKm);
-
-  const stops: Planet[] = [departure];
-
-  if (outward.length > 0) {
-    stops.push(...outward);
-    stops.push(...[...outward].reverse().slice(1));
-    stops.push(departure);
-  }
-
-  if (inward.length > 0) {
-    stops.push(...inward);
-    stops.push(...[...inward].reverse().slice(1));
-    stops.push(departure);
-  }
-
-  return stops;
+/** Fly the branch out, come back the way you came, finish at the departure. */
+function outAndBack(departure: Planet, branch: readonly Planet[]): Planet[] {
+  if (branch.length === 0) return [];
+  return [...branch, ...branch.slice(0, -1).reverse(), departure];
 }
 
 /**
- * Builds the full round trip from an ordered stop list.
- *
- * Two sources of detour are accounted for:
- *
- *  - bodies lying between a leg's endpoints, which are flown around in transit;
- *  - intermediate stops that the route continues past in the same direction.
- *    Departure is from the exact point of arrival (prerequisite 5c), so a craft
- *    that lands and then carries on outward still has the body in its path.
- *    A turnaround stop is exempt: the craft leaves the way it came.
+ * On a single axis the round trip covers the same distance whatever order the
+ * stops come in. Outward first, then inward, just because it reads better.
  */
+export function orderStops(departure: Planet, destinations: readonly Planet[]): Planet[] {
+  const unique = [
+    ...new Map(destinations.filter((d) => d.id !== departure.id).map((d) => [d.id, d])).values(),
+  ];
+
+  const outward = unique
+    .filter((p) => p.distanceFromSunKm > departure.distanceFromSunKm)
+    .sort((a, b) => a.distanceFromSunKm - b.distanceFromSunKm);
+
+  const inward = unique
+    .filter((p) => p.distanceFromSunKm < departure.distanceFromSunKm)
+    .sort((a, b) => b.distanceFromSunKm - a.distanceFromSunKm);
+
+  return [departure, ...outAndBack(departure, outward), ...outAndBack(departure, inward)];
+}
+
+/**
+ * Detours come from two places:
+ *
+ *  - planets passed mid-leg: the leg already flies through them, so only the
+ *    extra over that crossing counts — `clearanceFor`;
+ *  - a stop the route carries on past in the same direction: you take off from
+ *    where you landed, so the planet is still in front of you and you pay the
+ *    full arc — `detourFor`. Turnarounds are free, you leave the way you came.
+ */
+function detourKmFor(
+  from: Planet,
+  to: Planet,
+  previous: Planet | undefined,
+  passed: readonly Planet[],
+): number {
+  const clearances = passed.reduce((sum, p) => sum + clearanceFor(p), 0);
+  const carriesOn =
+    previous !== undefined && directionBetween(previous, from) === directionBetween(from, to);
+  return clearances + (carriesOn ? detourFor(from) : 0);
+}
+
+function buildLeg(
+  from: Planet,
+  to: Planet,
+  previous: Planet | undefined,
+  all: readonly Planet[],
+): Leg {
+  const passed = planetsBetween(from, to, all);
+  const surfaceDistanceKm = surfaceDistanceBetween(from, to);
+  const detourKm = detourKmFor(from, to, previous, passed);
+
+  return {
+    fromPlanetId: from.id,
+    toPlanetId: to.id,
+    surfaceDistanceKm,
+    passedPlanetIds: passed.map((p) => p.id),
+    detourKm,
+    distanceKm: surfaceDistanceKm + detourKm,
+  };
+}
+
 export function buildItinerary(
   departure: Planet,
   destinations: readonly Planet[],
   all: readonly Planet[],
 ): Itinerary {
   const stops = orderStops(departure, destinations);
-  const legs: Leg[] = [];
-  const exposed = new Set<string>([departure.id]);
-
-  for (let i = 0; i < stops.length - 1; i += 1) {
-    const from = stops[i]!;
-    const to = stops[i + 1]!;
-
-    const between = planetsBetween(from, to, all);
-    const passedIds = between.map((p) => p.id);
-    let detourKm = between.reduce((sum, p) => sum + detourFor(p), 0);
-
-    const previous = i > 0 ? stops[i - 1] : undefined;
-    const continuesThrough =
-      previous !== undefined && directionBetween(previous, from) === directionBetween(from, to);
-
-    if (continuesThrough) {
-      detourKm += detourFor(from);
-    }
-
-    const surfaceDistanceKm = surfaceDistanceBetween(from, to);
-
-    console.info(surfaceDistanceKm, 'surfaceDistanceKM', from);
-
-    legs.push({
-      fromPlanetId: from.id,
-      toPlanetId: to.id,
-      surfaceDistanceKm,
-      passedPlanetIds: passedIds,
-      detourKm,
-      distanceKm: surfaceDistanceKm + detourKm,
-    });
-
-    exposed.add(to.id);
-    for (const id of passedIds) exposed.add(id);
-  }
+  const legs = stops
+    .slice(0, -1)
+    .map((from, i) => buildLeg(from, stops[i + 1]!, stops[i - 1], all));
 
   return {
     legs,
-    exposedPlanetIds: [...exposed],
+    exposedPlanetIds: [
+      ...new Set([
+        departure.id,
+        ...legs.flatMap((leg) => [leg.toPlanetId, ...leg.passedPlanetIds]),
+      ]),
+    ],
     totalDistanceKm: legs.reduce((sum, leg) => sum + leg.distanceKm, 0),
   };
 }

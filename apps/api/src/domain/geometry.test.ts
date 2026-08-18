@@ -1,5 +1,11 @@
 import { alpha, beta, gamma, inner, planets } from './__fixtures__/planets';
-import { detourFor, planetsBetween, radiusOf, surfaceDistanceBetween } from './geometry';
+import {
+  clearanceFor,
+  detourFor,
+  planetsBetween,
+  radiusOf,
+  surfaceDistanceBetween,
+} from './geometry';
 
 describe('surfaceDistanceBetween', () => {
   it('is zero for a planet and itself', () => {
@@ -52,5 +58,22 @@ describe('detourFor', () => {
 
   it('exceeds the diameter it replaces', () => {
     expect(detourFor(beta)).toBeGreaterThan(2 * radiusOf(beta));
+  });
+});
+
+describe('clearanceFor', () => {
+  it('is the arc less the crossing it replaces', () => {
+    expect(clearanceFor(beta)).toBeCloseTo(Math.PI * 200 - 400, 6);
+  });
+
+  /* The whole point of the distinction: a straight surface-to-surface line has
+     already paid to cross a body in the middle, so only the excess is added. */
+  it('is a little over one radius, not a little over three', () => {
+    expect(clearanceFor(beta)).toBeCloseTo(1.14159 * radiusOf(beta), 2);
+    expect(clearanceFor(beta)).toBeLessThan(detourFor(beta));
+  });
+
+  it('is positive, so going around is never cheaper than going through', () => {
+    expect(clearanceFor(beta)).toBeGreaterThan(0);
   });
 });
