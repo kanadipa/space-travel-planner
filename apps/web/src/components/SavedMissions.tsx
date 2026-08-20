@@ -1,4 +1,4 @@
-import type { Mission } from '../types';
+import type { Mission } from '../interfaces/types';
 import { distance, longDate, years } from '../format';
 import styles from './SavedMissions.module.css';
 

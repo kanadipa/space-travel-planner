@@ -5,7 +5,7 @@ import { Controls } from './components/Controls';
 import { CraftList } from './components/CraftList';
 import { SavedMissions } from './components/SavedMissions';
 import { TrajectoryDiagram } from './components/TrajectoryDiagram';
-import type { CatalogResponse, Evaluation, Failure, Mission, Spacecraft } from './types';
+import type { CatalogResponse, Evaluation, Failure, Mission, Spacecraft } from './interfaces/types';
 import styles from './App.module.css';
 
 /** The supplied data carries no epoch and missions run for years. */

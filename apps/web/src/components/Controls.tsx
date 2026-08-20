@@ -1,4 +1,4 @@
-import type { Planet } from '../types';
+import type { Planet } from '../interfaces/types';
 import styles from './Controls.module.css';
 
 /**

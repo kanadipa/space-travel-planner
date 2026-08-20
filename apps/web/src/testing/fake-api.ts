@@ -5,7 +5,7 @@ import type {
   EvaluationResponse,
   Mission,
   Spacecraft,
-} from '../types';
+} from '../interfaces/types';
 
 const planet = (id: string, name: string, distanceFromSunKm: number, temp: number) => ({
   id,

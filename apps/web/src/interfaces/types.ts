@@ -7,6 +7,7 @@ export interface Planet {
   averageTemperatureC: number;
   potentiallyHabitable: boolean;
   weatherPatterns?: string;
+  radiationLevelsMsv?: number;
   moons?: string[];
 }
 

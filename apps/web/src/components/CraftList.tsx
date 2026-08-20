@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Evaluation, Failure, Spacecraft } from '../types';
+import type { Evaluation, Failure, Spacecraft } from '../interfaces/types';
 import { distance, percent, temperature, years } from '../format';
 import styles from './CraftList.module.css';
 

@@ -1,4 +1,4 @@
-import type { CatalogResponse, EvaluationResponse, Mission, Spacecraft } from './types';
+import type { CatalogResponse, EvaluationResponse, Mission, Spacecraft } from './interfaces/types';
 
 const BASE = '/api';
 

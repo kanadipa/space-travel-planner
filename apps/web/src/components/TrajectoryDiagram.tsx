@@ -1,4 +1,4 @@
-import type { Leg, Planet } from '../types';
+import type { Leg, Planet } from '../interfaces/types';
 import { distance, temperature } from '../format';
 import { fillOf } from '../planets';
 import styles from './TrajectoryDiagram.module.css';
