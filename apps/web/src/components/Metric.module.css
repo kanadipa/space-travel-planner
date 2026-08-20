@@ -1,0 +1,28 @@
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px 22px 22px;
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+
+.label {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.value {
+  font-family: var(--display);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: 20px;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+
+.hint {
+  font-size: 13px;
+  color: var(--text-dim);
+  min-height: 20px;
+}

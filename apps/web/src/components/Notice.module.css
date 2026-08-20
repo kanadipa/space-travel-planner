@@ -1,0 +1,20 @@
+.notice {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  display: grid;
+  gap: 3px;
+  font-size: 14px;
+  max-width: 52ch;
+}
+
+.scheduling {
+  background: var(--warn);
+  color: var(--warn-ink);
+}
+
+.physics {
+  background: var(--bad);
+  color: var(--bad-ink);
+}
