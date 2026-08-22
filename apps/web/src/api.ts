@@ -52,7 +52,6 @@ export const api = {
     }),
 
   listMissions: () => request<Mission[]>('/missions'),
-  getMission: (id: string) => request<Mission>(`/missions/${id}`),
 
   createMission: (body: MissionInput) =>
     request<Mission>('/missions', {
