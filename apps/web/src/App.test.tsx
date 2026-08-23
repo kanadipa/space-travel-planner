@@ -16,6 +16,11 @@ afterEach(() => {
 const waitForEvaluation = () =>
   waitFor(() => expect(screen.getByText('Serenity XL')).toBeInTheDocument(), { timeout: 3000 });
 
+/** The saved list has its own screen, so reaching it is a navigation now. */
+const goToMissions = async (user: ReturnType<typeof userEvent.setup>) => {
+  await user.click(await screen.findByRole('link', { name: /^Missions/ }));
+};
+
 const chooseMars = async (user: ReturnType<typeof userEvent.setup>) => {
   await waitFor(() => expect(screen.getByRole('button', { name: /^Mars/ })).toBeInTheDocument());
   await user.click(screen.getByRole('button', { name: /^Mars/ }));
@@ -229,7 +234,7 @@ describe('planner screen', () => {
     installFakeApi({ missions: [savedMission] });
     render(<App />);
 
-    await waitFor(() => expect(screen.getByText(savedMission.name)).toBeInTheDocument());
+    await goToMissions(user);
     await user.click(screen.getByText(savedMission.name).closest('button')!);
     await waitForEvaluation();
 
@@ -272,14 +277,15 @@ describe('planner screen', () => {
     installFakeApi({ missions: [savedMission] });
     render(<App />);
 
-    await waitFor(() => expect(screen.getByText(savedMission.name)).toBeInTheDocument());
+    await goToMissions(user);
     await user.click(screen.getByText(savedMission.name).closest('button')!);
     await waitForEvaluation();
 
     expect(screen.getByRole('button', { name: /^Mars/ })).toHaveAttribute('aria-pressed', 'true');
 
-    // Once in the header banner, once in the saved list.
-    expect(screen.getAllByText(savedMission.reference)).toHaveLength(2);
+    // Opening a plan lands on the planner, where the banner names it. The saved
+    // list is on the other screen now, so this is the only mention.
+    expect(screen.getAllByText(savedMission.reference)).toHaveLength(1);
   });
 
   it('re-evaluates when the passenger count changes', async () => {
@@ -316,7 +322,7 @@ describe('planner screen', () => {
     installFakeApi({ missions: [savedMission] });
     render(<App />);
 
-    await waitFor(() => expect(screen.getByText(savedMission.name)).toBeInTheDocument());
+    await goToMissions(user);
 
     const row = screen.getByText(savedMission.name).closest('li');
     await user.click(within(row!).getByRole('button', { name: /Delete mission/i }));

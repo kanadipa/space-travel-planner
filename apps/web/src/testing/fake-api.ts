@@ -102,7 +102,7 @@ const evaluation = (spacecraftId: string, feasible: boolean, failures: Evaluatio
 });
 
 /** One feasible craft, one blocked on capacity, one blocked on temperature. */
-export const mixedEvaluation: EvaluationResponse = {
+const mixedEvaluation: EvaluationResponse = {
   anyFeasible: true,
   evaluations: [
     evaluation('serenity-xl', true, []),
@@ -166,7 +166,7 @@ export const savedMission: Mission = {
   createdAt: '2041-01-01T00:00:00.000Z',
 };
 
-export interface RecordedRequest {
+interface RecordedRequest {
   method: string;
   path: string;
   body: unknown;
