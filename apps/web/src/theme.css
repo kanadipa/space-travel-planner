@@ -10,6 +10,7 @@
   --accent-halo: lavender;
   --accent-mid: darkorchid;
   --accent-pale: plum;
+  --accent-ink: cornsilk;
 
   --line: lightgray;
 
@@ -25,6 +26,7 @@
 
   --display: 'Baloo 2', system-ui, cursive;
   --sans: 'Nunito Sans', system-ui, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 * {

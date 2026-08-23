@@ -49,13 +49,36 @@
   cursor: not-allowed;
 }
 
+/* An input, but it should read as the figure it replaced until you click it. */
 .readout {
   font-family: var(--display);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   font-size: 28px;
-  min-width: 52px;
+  width: 62px;
   text-align: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: none;
+  padding: 4px 0;
+  color: inherit;
+  -moz-appearance: textfield;
+}
+
+.readout::-webkit-outer-spin-button,
+.readout::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.readout:hover {
+  border-color: var(--line);
+}
+
+.readout:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--surface);
 }
 
 .date {

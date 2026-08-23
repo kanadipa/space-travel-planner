@@ -10,9 +10,16 @@
 
 .masthead {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
+}
+
+.titleRow {
+  width: 100%;
+  display: flex;
+  align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: 20px;
   flex-wrap: wrap;
 }
 
@@ -24,33 +31,46 @@
   margin: 12px 0 0;
   font-size: 17px;
   color: var(--text-dim);
-  max-width: 46ch;
   text-wrap: pretty;
 }
 
-/* Which saved plan is open, next to the title — a save panel further down the
-   page is too easy to scroll past before amending someone's booking. */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .editing {
   display: flex;
   align-items: center;
   gap: 14px;
   flex-wrap: wrap;
+  margin-top: 18px;
+  padding: 12px 18px;
+  border-radius: var(--radius);
+  background: var(--accent-halo);
+  border-left: 4px solid var(--accent);
 }
 
 .editingLabel {
   display: inline-flex;
-  align-items: center;
-  gap: 8px;
+  align-items: baseline;
+  gap: 10px;
   font-size: 14px;
   color: var(--text-dim);
 }
 
 .editingLabel strong {
-  font-weight: 600;
-  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent-deep);
 }
 
 .unsaved {
+  margin-left: auto;
   font-style: normal;
   font-size: 13px;
   color: var(--warn-ink);
@@ -60,17 +80,27 @@
 }
 
 .ghost {
+  display: inline-flex;
+  align-items: center;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 999px;
   padding: 10px 20px;
   min-height: 44px;
   font-size: 15px;
+  color: inherit;
+  text-decoration: none;
 }
 
-.ghost:hover {
+.ghost:hover:not(:disabled) {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+.ghost:disabled {
+  color: var(--text-dim);
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .loading,
@@ -100,97 +130,4 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
   gap: 14px;
-}
-
-/* Each figure gets its own tint, so the four are told apart at a glance
-   rather than read in order. */
-.metric {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 20px 22px 22px;
-  border-radius: var(--radius-card);
-}
-
-.metricLabel {
-  font-size: 13px;
-  color: var(--text-dim);
-}
-
-.metricValue {
-  font-family: var(--display);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  font-size: 27px;
-  line-height: 1.15;
-  letter-spacing: -0.015em;
-}
-
-.metricHint {
-  font-size: 13px;
-  color: var(--text-dim);
-  min-height: 20px;
-}
-
-.savePanel {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  flex-wrap: wrap;
-  padding-top: 22px;
-  border-top: 1px solid var(--line);
-}
-
-.hint {
-  margin: 0;
-  font-size: 15px;
-  color: var(--text-dim);
-  max-width: 52ch;
-}
-
-/* Amber, not red: the save is allowed to proceed. */
-.warning {
-  margin: 10px 0 0;
-  padding: 10px 14px;
-  background: var(--warn);
-  border-radius: var(--radius);
-  color: var(--warn-ink);
-  font-size: 14px;
-  max-width: 52ch;
-}
-
-.saveErrors {
-  list-style: none;
-  margin: 10px 0 0;
-  padding: 10px 14px;
-  background: var(--bad);
-  border-radius: var(--radius);
-  display: grid;
-  gap: 3px;
-  font-size: 14px;
-  color: var(--bad-ink);
-}
-
-.primary {
-  background: var(--accent);
-  border: 0;
-  border-radius: 999px;
-  color: cream;
-  padding: 0 30px;
-  min-height: 52px;
-  font-family: var(--display);
-  font-weight: 600;
-  font-size: 18px;
-  transition: background 140ms ease;
-}
-
-.primary:hover:not(:disabled) {
-  background: var(--accent-deep);
-}
-
-.primary:disabled {
-  background: var(--surface);
-  color: var(--text-dim);
-  cursor: not-allowed;
 }

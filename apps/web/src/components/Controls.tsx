@@ -1,12 +1,54 @@
+import { useState } from 'react';
 import type { Planet } from '../interfaces/types';
 import styles from './Controls.module.css';
 
 /**
- * Lowercases only the leading character so the reason reads as a clause
- * after the npbody name.
+ * Lowercases only the leading character so the reason reads as a clause.
  */
 function uncapitalise(sentence: string): string {
   return sentence.charAt(0).toLowerCase() + sentence.slice(1);
+}
+
+function PassengerField({
+  value,
+  max,
+  onChange,
+}: {
+  value: number;
+  max: number;
+  onChange: (value: number) => void;
+}) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const [lastValue, setLastValue] = useState(value);
+
+  if (value !== lastValue) {
+    setLastValue(value);
+    setDraft(null);
+  }
+
+  function commit() {
+    const parsed = Number.parseInt(draft ?? '', 10);
+    if (Number.isFinite(parsed)) onChange(Math.min(max, Math.max(1, parsed)));
+    setDraft(null);
+  }
+
+  return (
+    <input
+      className={styles.readout}
+      type="number"
+      inputMode="numeric"
+      min={1}
+      max={max}
+      aria-labelledby="pax-label"
+      value={draft ?? value}
+      onChange={(event) => setDraft(event.target.value)}
+      onBlur={commit}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter') event.currentTarget.blur();
+        if (event.key === 'Escape') setDraft(null);
+      }}
+    />
+  );
 }
 
 interface Props {
@@ -43,9 +85,7 @@ export function Controls({
             >
               –
             </button>
-            <output className={styles.readout} aria-labelledby="pax-label">
-              {passengerCount}
-            </output>
+            <PassengerField value={passengerCount} max={maxCapacity} onChange={onPassengerCount} />
             <button
               type="button"
               className={styles.step}

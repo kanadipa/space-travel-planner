@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { Evaluation, Failure, Spacecraft } from '../interfaces/types';
-import { distance, percent, temperature, years } from '../format';
+import { distance, duration, percent, temperature } from '../format';
+import { CraftRow, GravityPill } from './CraftRow';
+import { Pill } from './Pill';
 import styles from './CraftList.module.css';
 
 interface Props {
@@ -11,9 +13,10 @@ interface Props {
   onSelect: (id: string) => void;
 }
 
-/**
- * Briefing of reason for failing to be fit for the mission.
- */
+const ALREADY_BOOKED =
+  'Already committed to another saved mission over these dates. Move the departure date to free it.';
+
+/** The short label on a stamp. The server's full sentence goes in the tooltip. */
 function reasonFor(failure: Failure): string {
   switch (failure.code) {
     case 'CAPACITY_EXCEEDED':
@@ -37,7 +40,6 @@ export function CraftList({ evaluations, fleet, busyIds, selectedId, onSelect }:
   const ruledOut = evaluations.filter((evaluation) => !evaluation.feasible);
 
   const showRuledOut = openedByHand ?? feasible.length === 0;
-
   const recommendedId = feasible.find((e) => !busyIds.includes(e.spacecraftId))?.spacecraftId;
 
   return (
@@ -62,35 +64,31 @@ export function CraftList({ evaluations, fleet, busyIds, selectedId, onSelect }:
           if (!craft) return null;
 
           const chosen = selectedId === craft.id;
-          const busy = busyIds.includes(craft.id);
 
           return (
-            <li key={craft.id}>
-              <button
-                type="button"
-                className={`${styles.row} ${chosen ? styles.rowOn : ''}`}
-                onClick={() => onSelect(craft.id)}
-                aria-pressed={chosen}
-              >
-                <span className={styles.rowMain}>
-                  <span className={styles.rowName}>{craft.name}</span>
-                  {chosen && <span className={styles.chosen}>chosen</span>}
-                  {craft.id === recommendedId && <span className={styles.badge}>Recommended</span>}
-                  {busy && (
-                    <span
-                      className={styles.busy}
-                      title="Already committed to another saved mission over these dates. Move the departure date to free it."
-                    >
+            <CraftRow
+              key={craft.id}
+              craft={craft}
+              selected={chosen}
+              onSelect={() => onSelect(craft.id)}
+              pills={
+                <>
+                  {craft.id === recommendedId && <Pill tone="accent">Recommended</Pill>}
+                  <GravityPill craft={craft} />
+                  {busyIds.includes(craft.id) && (
+                    <Pill tone="warn" tip={ALREADY_BOOKED}>
                       already booked
-                    </span>
+                    </Pill>
                   )}
-                </span>
-                <span className={styles.specs}>
+                </>
+              }
+              specs={
+                <>
                   {craft.capacity} seats · {percent(evaluation.rangeUtilisation)} used ·{' '}
-                  {years(evaluation.durationYears)}
-                </span>
-              </button>
-            </li>
+                  {duration(evaluation.durationYears)}
+                </>
+              }
+            />
           );
         })}
       </ul>
@@ -115,35 +113,31 @@ export function CraftList({ evaluations, fleet, busyIds, selectedId, onSelect }:
                 if (!craft) return null;
 
                 return (
-                  <li key={craft.id} className={styles.rejected}>
-                    <span className={styles.rejectedTop}>
-                      <span className={styles.rejectedName}>{craft.name}</span>
-
-                      <span className={styles.reasons}>
+                  <CraftRow
+                    key={craft.id}
+                    craft={craft}
+                    pills={
+                      <>
+                        <GravityPill craft={craft} />
                         {evaluation.failures.map((failure, index) => (
-                          <span
+                          <Pill
                             key={`${failure.code}-${index}`}
-                            className={failure.actionable ? styles.stampWarn : styles.stampBad}
-                            tabIndex={0}
+                            tone={failure.actionable ? 'warn' : 'bad'}
+                            tip={failure.message}
                           >
                             {reasonFor(failure)}
-                            <i className={styles.info} aria-hidden="true">
-                              i
-                            </i>
-                            <span className={styles.tip} role="tooltip">
-                              {failure.message}
-                            </span>
-                          </span>
+                          </Pill>
                         ))}
-                      </span>
-                    </span>
-
-                    <span className={styles.rejectedSpecs}>
-                      {craft.size} · {craft.capacity} seats · {distance(craft.rangeKm)} range ·{' '}
-                      {temperature(craft.operationalTemperatureCMin)} to{' '}
-                      {temperature(craft.operationalTemperatureCMax)}
-                    </span>
-                  </li>
+                      </>
+                    }
+                    specs={
+                      <>
+                        {craft.size} · {craft.capacity} seats · {distance(craft.rangeKm)} range ·{' '}
+                        {temperature(craft.operationalTemperatureCMin)} to{' '}
+                        {temperature(craft.operationalTemperatureCMax)}
+                      </>
+                    }
+                  />
                 );
               })}
             </ul>

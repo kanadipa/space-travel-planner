@@ -1,0 +1,36 @@
+.panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+.hint {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-dim);
+  max-width: 52ch;
+}
+.primary {
+  background: var(--accent);
+  border: 0;
+  border-radius: 999px;
+  color: var(--accent-ink);
+  padding: 0 30px;
+  min-height: 52px;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 18px;
+  transition: background 140ms ease;
+}
+.primary:hover:not(:disabled) {
+  background: var(--accent-deep);
+}
+
+.primary:disabled {
+  background: var(--surface);
+  color: var(--text-dim);
+  cursor: not-allowed;
+}

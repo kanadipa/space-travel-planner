@@ -1,5 +1,5 @@
 import type { Mission } from '../interfaces/types';
-import { distance, longDate, years } from '../format';
+import { distance, duration, longDate } from '../format';
 import styles from './SavedMissions.module.css';
 
 interface Props {
@@ -33,7 +33,7 @@ export function SavedMissions({ missions, activeId, onLoad, onDelete }: Props) {
                 <span className={styles.name}>{mission.name}</span>
                 <span className={styles.meta}>
                   {longDate(mission.departureDate)} → {longDate(mission.arrivalDate)} ·{' '}
-                  {years(mission.durationYears)} · {distance(mission.totalDistanceKm)} ·{' '}
+                  {duration(mission.durationYears)} · {distance(mission.totalDistanceKm)} ·{' '}
                   {mission.spacecraftSnapshot.name}
                 </span>
               </button>

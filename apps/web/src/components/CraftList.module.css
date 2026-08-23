@@ -40,7 +40,7 @@
   width: calc(100% + 28px);
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 8px 20px;
   padding: 20px 14px;
@@ -52,7 +52,7 @@
   text-align: left;
 }
 
-.row:hover {
+button.row:hover {
   background: var(--surface);
 }
 
@@ -60,41 +60,36 @@
   background: var(--accent-halo);
 }
 
-.rowMain {
+.rowText {
   display: flex;
-  align-items: baseline;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.rowPills {
+  display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-left: auto;
 }
 
 .rowName {
   font-size: 19px;
 }
 
+.rowOff {
+  color: var(--text-dim);
+}
+
+.rowOff .rowName {
+  font-size: 17px;
+}
+
 .rowOn .rowName {
   font-weight: 600;
-}
-
-.chosen,
-.badge,
-.busy {
-  font-size: 13px;
-}
-
-.chosen {
-  color: var(--accent-deep);
-}
-
-.badge {
-  color: var(--accent);
-}
-
-.busy {
-  color: var(--warn-ink);
-  background: var(--warn);
-  border-radius: 999px;
-  padding: 3px 11px;
-  cursor: help;
 }
 
 .specs {
@@ -124,109 +119,4 @@
 
 .disclosure:hover {
   color: var(--accent);
-}
-
-.rejected {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 14px 0;
-}
-
-.rejectedTop {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 6px 20px;
-}
-
-.rejectedName {
-  font-size: 17px;
-  color: var(--text-dim);
-}
-
-.reasons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  justify-content: flex-end;
-}
-
-.stampWarn,
-.stampBad {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 13px;
-  padding: 5px 11px;
-  border-radius: 999px;
-  white-space: nowrap;
-  cursor: help;
-}
-
-.stampWarn {
-  background: var(--warn);
-  color: var(--warn-ink);
-}
-
-.stampBad {
-  background: var(--bad);
-  color: var(--bad-ink);
-}
-
-.info {
-  width: 15px;
-  height: 15px;
-  border: 1px solid currentColor;
-  border-radius: 50%;
-  font-size: 10px;
-  font-style: normal;
-  line-height: 13px;
-  text-align: center;
-  opacity: 0.75;
-}
-
-.tip {
-  position: absolute;
-  bottom: calc(100% + 9px);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 2;
-  width: max-content;
-  max-width: 250px;
-  padding: 9px 13px;
-  background: var(--text);
-  border-radius: var(--radius);
-  color: oklch(0.97 0.02 88);
-  font-size: 13px;
-  white-space: normal;
-  text-align: left;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 120ms ease;
-}
-
-.tip::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  margin-left: -6px;
-  border: 6px solid transparent;
-  border-top-color: var(--text);
-}
-
-.stampWarn:hover .tip,
-.stampBad:hover .tip,
-.stampWarn:focus .tip,
-.stampBad:focus .tip {
-  opacity: 1;
-  visibility: visible;
-}
-
-.rejectedSpecs {
-  font-size: 13px;
-  color: var(--text-dim);
 }

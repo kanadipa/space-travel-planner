@@ -65,8 +65,3 @@ export function longDate(value: Date | string): string {
   const date = typeof value === 'string' ? new Date(value) : value;
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
-
-export function years(value: number): string {
-  if (value < 1) return `${(value * 12).toFixed(1)} months`;
-  return `${value.toFixed(2)} yr`;
-}
