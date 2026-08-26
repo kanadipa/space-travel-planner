@@ -11,135 +11,115 @@ You need **Node 20 or later** and **Docker Desktop running**. Postgres runs in a
 container — you do not need to type any `docker` commands yourself.
 
 ```bash
-git clone <repo> && cd space-mission-planner
+open -a Docker
 npm install
 npm run dev
 ```
 
 Then open **http://localhost:5173**.
 
-`npm run dev` does the whole setup before it starts anything: creates
-`apps/api/.env`, starts the Postgres container, waits until it is accepting
-connections, applies the migrations, and then runs the API and the web client
-together in one terminal. It is safe to re-run — every step checks before it
-acts — so it is also what you run after pulling a schema change.
+`npm run dev` writes `apps/api/.env`, starts Postgres, waits for it, applies the
+migrations, then runs both servers in one terminal. The web server waits for the
+API to answer `/api/health` before it starts, so the first page load is not a wall
+of proxy errors while Nest is still compiling. Every step checks before it acts, so
+re-running it is also how you pick up a schema change.
 
-| Command            | What it does                                                     |
-| ------------------ | ---------------------------------------------------------------- |
-| `npm run dev`      | Setup, then both servers — API on 3000, web on 5173              |
-| `npm run setup`    | The setup only, without starting the servers                     |
-| `npm test`         | 119 unit, integration and component tests. Needs the database up |
-| `npm run test:e2e` | 4 browser tests through the full stack                           |
-| `npm run db:down`  | Stops the Postgres container                                     |
-
-The `String[]` and `Json` columns would have to become serialised strings first,
-so that path is untested — Docker is the supported one.
+| Command             | What it does                                                     |
+| ------------------- | ---------------------------------------------------------------- |
+| `npm run dev`       | Setup, then both servers — API on 3000, web on 5173              |
+| `npm run setup`     | The setup only, without starting the servers                     |
+| `npm test`          | 150 unit, integration and component tests. Needs the database up |
+| `npm run test:e2e`  | 4 browser tests through the full stack                           |
+| `npm run typecheck` | Type-checks both workspaces                                      |
+| `npm run lint`      | ESLint over both workspaces, the scripts and the e2e pass        |
+| `npm run format`    | Prettier over the repo (`format:check` to verify only)           |
+| `npm run db:down`   | Stops the Postgres container                                     |
 
 ## Repository layout
 
 ```
-apps/api             NestJS + Prisma
-  src/domain/        planning logic — no Nest, no Prisma, no HTTP
-  src/catalog/       loads the supplied YAML, normalises it
-  src/planning/      the only caller of the domain layer
-  src/missions/      persistence, DTOs, validation
-apps/web             React + Vite client
-data/                supplied planet and spacecraft data
-e2e/                 Playwright: real browser, built API, real Postgres
-scripts/setup.mjs    one-command first launch
+apps/api                 NestJS + Prisma
+  src/domain/            planning logic — no Nest, no Prisma, no HTTP
+  src/catalog/           loads the supplied YAML, normalises it
+  src/planning/          evaluation endpoint over the domain layer
+  src/missions/          persistence, DTOs, validation, availability
+  src/app.setup.ts       the request pipeline, shared by main.ts and the tests
+apps/web                 React + Vite client
+  src/components/        controls, fleet list, trajectory, saved missions
+  src/router.ts          the two screens
+data/                    supplied planet and spacecraft data
+e2e/                     Playwright: real browser, built API, real Postgres
+scripts/setup.mjs        one-command first launch
 ```
 
-`src/domain` imports nothing from the framework. It takes plain objects and
-returns plain objects, so the planning rules can be tested without bootstrapping
-Nest or a database. It is a folder rather than a package deliberately: the value
-is in dependencies pointing one way, and a folder enforces that just as well as a
-workspace would, without the build-ordering cost.
+`src/domain` imports nothing from the framework — plain objects in, plain objects
+out — so the planning rules test without booting Nest or a database. A folder
+rather than a package on purpose: the value is in dependencies pointing one way,
+and a folder buys that without the build-ordering cost.
 
 ## The planning model
 
-Every body sits on a single axis, and the supplied `distance_from_sun_km` values
-place them on it. Planning therefore reduces to arithmetic on one dimension.
+Every body sits on a single axis, placed by the supplied `distance_from_sun_km`,
+so planning reduces to arithmetic on one dimension: legs are surface to surface
+(`|d₁ − d₂| − r₁ − r₂`), a body in the way costs a half-circumference detour, and
+range is consumed at `1 + 0.042 × passengers` per km — so reach _falls_ as
+passengers are added.
 
-**Distance between two bodies.** Supplied distances are centre to centre, but a
-craft departs from the surface point nearest its destination and arrives on the
-far body's surface. Both radii come off the gap:
+Feasibility is four independent checks: capacity, range, the 42-year window, and
+temperature at every body on the route including ones only flown around. None
+depends on another, so all four run and every failure is reported, ordered by how
+easily an agent can act on them.
 
-```
-surfaceDistance(a, b) = |dₐ − d_b| − rₐ − r_b
-```
-
-**Detours.** Planets are solid, so a body lying between two endpoints cannot be
-flown through. The shortest path that clears a sphere runs over its surface, a
-semicircle of length `πr`.
-
-A craft that stops at a body and then continues in the same direction also pays
-the detour: it departs from its exact arrival point, so the body is still in the
-way. A craft that turns around does not — it leaves the way it came.
-
-**Range.** Consumption is `R = 1 + 0.042 × n_p` per km, so the distance a craft
-can actually cover is `range / R`. Reach _falls_ as passengers are added, which
-means a lightly loaded craft is a long-range craft. Because `R` rises
-monotonically with passenger count, feasibility is monotonic too: anything
-flyable at full capacity is flyable at any lower count.
-
-**Feasibility.** Four independent checks — capacity, range, mission window, and
-operational temperature at every body on the route. None depends on another's
-result, so all four run and every failure is reported. Failures are ordered by how
-easily an agent can act on them; temperature is intrinsic to the craft and route
-and is marked non-actionable.
+The derivations — why a detour costs `πr − 2r` mid-leg but a full `πr` past a
+stop, and why destination order cannot change the total — are in ASSUMPTIONS.md.
 
 ## API
 
-| Method   | Path                           | Purpose                                               |
-| -------- | ------------------------------ | ----------------------------------------------------- |
-| `GET`    | `/api/planets`                 | Selectable destinations, plus excluded bodies and why |
-| `GET`    | `/api/spacecraft`              | The fleet                                             |
-| `POST`   | `/api/evaluations`             | Evaluate the whole fleet against a proposed route     |
-| `GET`    | `/api/missions`                | List saved plans                                      |
-| `GET`    | `/api/missions/:id`            | Load one                                              |
-| `GET`    | `/api/missions/reference/:ref` | Load by booking code                                  |
-| `POST`   | `/api/missions`                | Save                                                  |
-| `PATCH`  | `/api/missions/:id`            | Amend and revalidate                                  |
-| `DELETE` | `/api/missions/:id`            | Remove                                                |
+| Method   | Path                | Purpose                                               |
+| -------- | ------------------- | ----------------------------------------------------- |
+| `GET`    | `/api/health`       | Liveness plus a real Postgres round trip              |
+| `GET`    | `/api/planets`      | Selectable destinations, plus excluded bodies and why |
+| `GET`    | `/api/spacecraft`   | The fleet                                             |
+| `POST`   | `/api/evaluations`  | Evaluate the whole fleet against a proposed route     |
+| `GET`    | `/api/missions`     | List saved plans                                      |
+| `GET`    | `/api/missions/:id` | Load one                                              |
+| `POST`   | `/api/missions`     | Save                                                  |
+| `PATCH`  | `/api/missions/:id` | Amend and revalidate                                  |
+| `DELETE` | `/api/missions/:id` | Remove                                                |
 
-Four outcomes are kept distinct. A malformed body is **400**, rejected by the
-global `ValidationPipe` against the DTO. A well-formed request describing a
-mission that cannot be flown is **422** on save. A flyable mission on a craft that
-is already committed elsewhere is **409**, naming the mission in the way. And an
-evaluation that finds no feasible craft is **200** with `anyFeasible: false` — a
-valid answer to a valid question, so the client never has to treat it as an error.
+Four outcomes, kept distinct:
 
-The client sends only inputs: craft, passenger count, destinations, departure
-date. The server recomputes everything else through the same domain functions the
-evaluator uses, so a stale or malformed client cannot persist an impossible
-mission.
+- **400** — malformed body, rejected by the global `ValidationPipe`.
+- **422** — well formed, but the mission cannot be flown.
+- **409** — flyable, but the craft is already committed. Names the mission in the way.
+- **200 with `anyFeasible: false`** — no craft can fly it. A valid answer to a
+  valid question, so the client never treats it as an error.
+
+The client sends inputs only: craft, passenger count, destinations, departure
+date. Everything else is recomputed server-side through the same domain functions
+the evaluator uses, so a stale client cannot persist an impossible mission.
 
 ## The interface
 
-A single planning screen rather than a wizard. Passenger count and destinations
-sit at the top; the trajectory, the totals and the fleet update beneath them as
-those inputs change. Because range consumption depends on passenger count, the
-consequence of a choice is visible at the moment it is made — moving the slider
-visibly changes which craft can fly the route.
-
-Craft that cannot fly a route stay in the list, greyed out, each carrying a short
-reason — amber when the agent can act on it, red when it is intrinsic to the craft
-and route. The server's full sentence is one hover or one tab-stop away, so the
-list stays scannable without hiding why. Dropping excluded craft entirely would be
-less work and considerably less useful.
-
-Which saved plan is open is shown next to the title, with the booking reference and
-a flag when the inputs have been changed but not yet saved.
-
-The trajectory diagram draws the axis, the route, and a dashed arc for each body
-flown around. Bodies are spaced evenly in orbital order rather than to scale: the
-supplied distances span 58 million to 4.5 billion km, so any true scale puts the
-four inner planets on top of each other. The caption says so, and the detour key
-only appears when the route actually has one.
-
-Evaluation is a debounced call to the API rather than a local computation. One
-execution path means the client's numbers and the server's numbers are provably
-the same, and at this data size the round trip is imperceptible.
+- **One screen, not a wizard.** Passenger count and destinations at the top; the
+  trajectory, totals and fleet update beneath them. Range consumption depends on
+  party size, so changing it visibly changes which craft can fly the route.
+- **The diagram is the control.** Planets are the buttons. Bodies sit in orbital
+  order rather than to scale — the supplied spans run from 58 million to 4.5
+  billion km, and any true scale stacks the four inner planets on each other.
+- **The plan reads as a sentence** above the diagram, naming each stop with its
+  weather, temperature, radiation and moons, then the total distance.
+- **Ruled-out craft stay in the list** with a short reason each: amber when the
+  agent can act on it, red when it is intrinsic to the craft and route. The
+  server's full sentence is one hover or one tab-stop away.
+- **A second route, `/missions`,** so the saved list is linkable and the back
+  button behaves. Two paths is the whole requirement, which is why
+  `src/router.ts` is a twenty-six-line hook over `history.pushState` rather than
+  a dependency. Swapping in react-router later means replacing that hook and its
+  two call sites.
+- **Evaluation is a debounced call to the API,** not a local computation. One
+  execution path means the client's numbers and the server's are provably the
+  same, and at this size the round trip is imperceptible.
 
 ## Decisions and trade-offs
 
@@ -149,72 +129,59 @@ deliberately.
 
 ## Testing
 
-119 tests in three layers, plus a small end-to-end pass. `npm test` runs the first
-three and needs the database up; `npm run test:e2e` drives a browser.
+Three layers, plus end-to-end. `npm test` runs the first three and needs the
+database up; `npm run test:e2e` drives a real browser.
 
-**Domain (56).** Pure arithmetic with several easy-to-get-wrong edge cases, so
-this is where the tests are concentrated: distance symmetry and identity, the
-radius subtraction, detour counting, the turnaround exemption, consumption
-monotonicity, and failure collection. No mocks, no fixtures beyond four synthetic
-bodies with round numbers.
+| Layer      | Count | What it is for                                                                                                  |
+| ---------- | ----- | --------------------------------------------------------------------------------------------------------------- |
+| Domain     | 57    | The arithmetic, where the easy-to-get-wrong edges are. No mocks; four synthetic bodies with round numbers.      |
+| API        | 44    | The real Nest app over supertest against real Postgres, through the pipeline `main.ts` installs.                |
+| Client     | 49    | The planner against a stubbed `fetch`, plus the formatters and journey builders. Product decisions, not markup. |
+| End to end | 4     | Chromium against the built API and the same Postgres.                                                           |
 
-**API (43).** The real Nest application over supertest, against the real Postgres,
-using the same request pipeline `main.ts` installs — both call the shared
-`configureApp`, so a test cannot pass against a pipeline users do not hit. Covers
-the three distinct outcomes, with the 422 path taken furthest: each failure mode
-separately, several at once, the actionable flag, and a check that a refused
-mission is not persisted.
+The choices worth knowing about:
 
-Running against the real database rather than a stand-in is what makes these tests
-worth trusting: the `String[]` and `Json` columns and the unique-reference
-constraint are exercised as they actually behave. The cost is that `npm test`
-needs Docker, and the mission table is emptied when the suite boots.
-
-**Client (20).** The planner screen against a stubbed `fetch` returning the API's
-real shapes. Covers the product decisions rather than the markup: ruled-out craft
-stay visible with their reasons, a ruled-out craft cannot be chosen, saving is
-blocked until a feasible craft is picked, a 422 surfaces the server's reasons, the
-open plan is named in the header, and — the contract the server depends on — a
-save sends inputs only, never a distance or a duration.
-
-### End to end (3)
+- **The API tests use the real database,** so the `String[]` and `Json` columns and
+  the unique-reference constraint behave as they actually do. The cost is that
+  `npm test` needs Docker and empties the mission table on boot.
+- **Both the API and the tests call `configureApp`,** so a test cannot pass against
+  a request pipeline that users never hit.
+- **One test asserts the client's half of the contract:** a save sends inputs only,
+  never a distance or a duration.
+- **The concurrency test fires eight simultaneous saves** and asserts the craft is
+  taken exactly once. Eight requests and a warmed connection pool are both
+  load-bearing — see [ASSUMPTIONS.md](./ASSUMPTIONS.md#booking-conflicts).
 
 ```bash
-npm run test:e2e
+npm run test:e2e   # save a plan, reload, load it back, fail to double-book
 ```
-
-Playwright drives a real Chromium against the built API and the same Postgres,
-covering the journey the unit layers cannot: save a plan, reload the page and find
-it still there, then load it back into the planner. It reuses a dev server if one
-is already running.
 
 ## Craft availability
 
-A craft already committed to another saved mission over the same window cannot be
-booked. The fleet list marks it "already booked", the save button goes dead with the
-reason beside it, and `POST /missions` answers **409** if asked anyway — the browser
-is where the rule is explained, not where it is enforced.
+A craft committed over an overlapping window cannot be booked — not a date match,
+so a craft that left for Jupiter in July is still in flight in September. The
+fleet list marks it "already booked" and the save button goes dead, but the
+browser only explains the rule; `POST /missions` answers **409** if asked anyway,
+and concurrent saves are settled by a `SERIALIZABLE` transaction with retry.
 
-It is a window overlap, not a date match. A craft that left for Jupiter on 29 July
-is still in flight in September, so comparing departure dates alone would offer a
-craft that is three months into another mission.
-
-Two refusals, kept apart on purpose. **422** is physics: this craft can never fly
-this route, and the payload is what has to change. **409** is the calendar: the
-mission is flyable and the craft is simply taken, so another craft or another date
-fixes it. Feasibility therefore lives in the domain layer, which answers the same
-way every time, and availability is checked in `MissionsService`, which answers from
-the database. When both apply the 422 wins.
-
-It is a derived read, not stored state. `conflictsFor` compares the proposed window
-against the saved missions on every evaluation and every save, so there is no
-availability flag to fall out of step when a mission is edited or deleted — the case
-that makes a stored flag awkward. The mission being amended is excluded from its own
-check, and because duration is distance over each craft's own speed, every craft is
-tested against a different window for the same route.
+Why 409 rather than 422, why availability is recomputed rather than stored, and
+the three concurrency options weighed:
+[ASSUMPTIONS.md](./ASSUMPTIONS.md#booking-conflicts).
 
 ## Not built
 
-- Cross-browser and mobile viewports — Playwright runs Chromium only
-- Passenger pooling across bookings — see ASSUMPTIONS.md
-- Turnaround time between missions — a craft landing as another departs counts as free
+Deliberately out of scope for a prototype, roughly in the order they would matter.
+
+- **Authentication and per-agent identity.** Every mission is anonymous; there is
+  no way to say who booked what.
+- **Structured logs, request correlation, and metrics.** The logs are plain text
+  and nothing is aggregated. A dashboard on 409 rate and evaluation latency is
+  where operational trouble would first show.
+- **A reservation with a timeout,** so a craft is held between evaluating and
+  saving rather than refused at the end.
+- **Look-up by booking reference,** for an agent holding a code and no list.
+- **Pagination on `GET /missions`.** It returns every mission and the client holds
+  them all in memory — fine at prototype volumes, not beyond them.
+- **Cross-browser and mobile viewports.** Playwright runs Chromium only.
+- **Passenger pooling and turnaround time** — see ASSUMPTIONS.md. A craft landing
+  as another departs counts as free.
