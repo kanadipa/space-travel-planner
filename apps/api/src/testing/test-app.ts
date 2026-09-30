@@ -14,6 +14,16 @@ export async function createTestApp(): Promise<INestApplication> {
   const app = configureApp(moduleRef.createNestApplication());
   await app.init();
 
+  /*
+   * Listening explicitly, rather than letting supertest do it per request.
+   * `request(app.getHttpServer())` starts a server when the one it is handed has
+   * no address, and closes it again when that request ends — so a concurrent
+   * burst has several requests each starting one, and the first to finish closes
+   * the socket out from under the rest. That surfaces as ECONNRESET, which reads
+   * like the API dropped the connection when nothing of the sort happened.
+   */
+  await app.listen(0);
+
   await clearMissions(app);
 
   return app;
