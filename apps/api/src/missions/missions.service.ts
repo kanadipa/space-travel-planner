@@ -15,7 +15,11 @@ import type { CreateMissionDto, UpdateMissionDto } from './dto/mission-input.dto
 const REFERENCE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
 /** An aborted transaction cannot be resumed, so retries re-run the whole booking. */
-const BOOKING_ATTEMPTS = 5;
+const BOOKING_ATTEMPTS = 8;
+
+/** Full-jitter backoff bounds between those re-runs. */
+const RETRY_BASE_MS = 10;
+const RETRY_CAP_MS = 200;
 
 /** Postgres 40001, serialisation failure or deadlock. */
 const WRITE_CONFLICT = 'P2034';
@@ -97,6 +101,7 @@ export class MissionsService {
         });
       } catch (error) {
         if (attempt >= BOOKING_ATTEMPTS || !isRetryable(error)) throw error;
+        await sleep(backoffMs(attempt));
       }
     }
   }
@@ -192,6 +197,19 @@ export class MissionsService {
     }
     throw new Error('Could not allocate a unique mission reference.');
   }
+}
+
+/**
+ * Full jitter, because retrying the instant Postgres aborts is what makes the
+ * budget run out: every loser restarts in step with the others and re-creates
+ * the same conflict. Spreading the restarts is what lets one of them through.
+ */
+function backoffMs(attempt: number): number {
+  return Math.random() * Math.min(RETRY_CAP_MS, RETRY_BASE_MS * 2 ** (attempt - 1));
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /** Aborted for a reason a second run can get past, rather than a refusal to repeat. */
